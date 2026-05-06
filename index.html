@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YamaComp — あなたに合う山を提案</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="mainApp">
+
+        <header>
+            <div class="header-mtn-layers">
+                <svg class="header-mtn header-mtn--far" viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,80 L0,55 L120,30 L240,50 L380,15 L520,45 L660,10 L800,40 L940,20 L1080,50 L1220,28 L1440,45 L1440,80 Z"/>
+                </svg>
+                <svg class="header-mtn header-mtn--mid" viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,80 L0,62 L100,45 L220,58 L340,38 L480,55 L620,35 L760,52 L900,38 L1040,56 L1180,42 L1440,55 L1440,80 Z"/>
+                </svg>
+                <svg class="header-mtn header-mtn--near" viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,80 L0,70 L90,60 L180,68 L300,55 L420,65 L540,57 L660,66 L780,58 L900,67 L1020,59 L1140,67 L1280,60 L1440,66 L1440,80 Z"/>
+                </svg>
+            </div>
+            <div class="header-inner">
+                <span class="header-icon">🏔️</span>
+                <div>
+                    <h1>YamaComp</h1>
+                    <p>あなたにぴったりの山を提案します</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- ステップインジケーター（2ステップ） -->
+        <nav class="step-nav">
+            <div class="step-track">
+                <div class="step-indicator active" id="indicator-1">
+                    <div class="step-circle"><span class="step-num">1</span><span class="step-check">✓</span></div>
+                    <span class="step-label">プラン</span>
+                </div>
+                <div class="step-line" id="line-1"></div>
+                <div class="step-indicator" id="indicator-2">
+                    <div class="step-circle"><span class="step-num">2</span><span class="step-check">✓</span></div>
+                    <span class="step-label">山の好み</span>
+                </div>
+            </div>
+        </nav>
+
+        <main>
+
+            <!-- Step 1: プラン設定 -->
+            <section id="step1" class="step-section">
+                <h2>今回のプランを教えてください</h2>
+
+                <div class="question-card">
+                    <p class="question-label">日程</p>
+                    <div class="options">
+                        <label class="option-label">
+                            <input type="radio" name="stay" value="日帰り">
+                            <span>日帰り</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="stay" value="1泊2日">
+                            <span>1泊2日</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <p class="question-label">出発地</p>
+                    <div class="options">
+                        <p class="options-region-label">関東</p>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="東京・新宿">
+                            <span>東京・新宿</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="横浜">
+                            <span>横浜</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="さいたま">
+                            <span>さいたま</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="千葉">
+                            <span>千葉</span>
+                        </label>
+                        <p class="options-region-label">中部・甲信越</p>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="名古屋">
+                            <span>名古屋</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="長野・松本">
+                            <span>長野・松本</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="甲府">
+                            <span>甲府</span>
+                        </label>
+                        <p class="options-region-label">関西</p>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="大阪・梅田">
+                            <span>大阪・梅田</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="京都">
+                            <span>京都</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="神戸・三宮">
+                            <span>神戸・三宮</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="departure" value="奈良">
+                            <span>奈良</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <p class="question-label">移動手段</p>
+                    <div class="options">
+                        <label class="option-label">
+                            <input type="radio" name="transport" value="車">
+                            <span>車</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="transport" value="電車・公共交通機関">
+                            <span>電車・公共交通機関</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="transport" value="どちらでも可">
+                            <span>どちらでも可</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="goToStep(2)">次へ →</button>
+                </div>
+            </section>
+
+            <!-- Step 2: 山の好み -->
+            <section id="step2" class="step-section hidden">
+                <h2>どんな山にしますか？</h2>
+
+                <div class="question-card">
+                    <p class="question-label">希望コースタイム（往復）</p>
+                    <div class="options large-options">
+                        <label class="option-label">
+                            <input type="radio" name="walkTime" value="〜3時間">
+                            <span>〜3時間 <small>気軽に楽しみたい</small></span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="walkTime" value="3〜5時間">
+                            <span>3〜5時間 <small>適度な達成感がほしい</small></span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="walkTime" value="5〜7時間">
+                            <span>5〜7時間 <small>しっかり登りたい</small></span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="walkTime" value="7時間以上">
+                            <span>7時間以上 <small>本格的な登山がしたい</small></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <p class="question-label">楽しみたいこと（複数選択可）</p>
+                    <div class="options">
+                        <label class="option-label">
+                            <input type="checkbox" name="purpose" value="景色・絶景重視">
+                            <span>景色・絶景重視</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="checkbox" name="purpose" value="のんびりゆるハイク">
+                            <span>のんびりゆるハイク</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="checkbox" name="purpose" value="難しいコースに挑戦したい">
+                            <span>難しいコースに挑戦したい</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="checkbox" name="purpose" value="周辺観光も楽しみたい">
+                            <span>周辺観光も楽しみたい</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">← 戻る</button>
+                    <button class="btn btn-accent" onclick="submitForm()">山を探す 🏔️</button>
+                </div>
+            </section>
+
+            <!-- 結果表示 -->
+            <section id="results" class="step-section hidden">
+
+                <div id="loadingSection" class="hidden">
+                    <div class="loading-box">
+                        <div class="spinner"></div>
+                        <p>あなたに合う山を探しています...</p>
+                    </div>
+                </div>
+
+                <div id="resultsContent" class="hidden">
+                    <div class="results-header-row">
+                        <h2>おすすめの山</h2>
+                        <button class="btn-share" onclick="shareResults()">🔗 シェア</button>
+                    </div>
+                    <p class="results-sub">気になる山を選んで比較・装備チェックができます</p>
+                    <div id="mountainCards"></div>
+
+                    <div id="equipmentSection" class="hidden">
+                        <h2 class="equipment-title">装備チェックリスト</h2>
+                        <p id="selectedMountainName" class="selected-mountain-name"></p>
+                        <div id="equipmentList"></div>
+                    </div>
+
+                    <div class="disclaimer">
+                        ⚠️ 本アプリの情報は参考用です。実際の登山計画はYAMAP等と組み合わせてください。
+                        天気・難所などの安全に関わる情報は、<strong>必ず現地情報を確認してください。</strong>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" onclick="resetApp()">最初からやり直す</button>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- 比較バー（スティッキーボトム） -->
+    <div id="compareBar" class="compare-bar hidden">
+        <div class="compare-bar-inner">
+            <span class="compare-bar-label">比較中：</span>
+            <div id="compareList" class="compare-list"></div>
+            <button class="btn-compare" onclick="showComparison()">比較する</button>
+            <button class="btn-compare-clear" onclick="clearCompare()" aria-label="比較リストをクリア">✕</button>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="main.js"></script>
+</body>
+</html>
