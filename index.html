@@ -35,7 +35,7 @@
         </header>
 
         <!-- ステップインジケーター（2ステップ） -->
-        <nav class="step-nav">
+        <nav class="step-nav" id="stepNav">
             <div class="step-track">
                 <div class="step-indicator active" id="indicator-1">
                     <div class="step-circle"><span class="step-num">1</span><span class="step-check">✓</span></div>
@@ -50,6 +50,44 @@
         </nav>
 
         <main>
+
+            <!-- Step 0: 日付選択 -->
+            <section id="step0" class="step-section">
+                <div class="date-step-header">
+                    <p class="step-eyebrow">STEP 1</p>
+                    <h2 class="date-step-title">いつ、登りたい？</h2>
+                    <p class="date-step-sub">日付を選ぶと、その日に登れる山だけを表示します</p>
+                </div>
+
+                <div class="cal-wrap">
+                    <div class="cal-header">
+                        <span class="cal-month" id="calMonthLabel"></span>
+                        <div class="cal-legend">
+                            <span class="cal-legend-item"><span class="cal-dot cal-dot--ok"></span>登れる</span>
+                            <span class="cal-legend-item"><span class="cal-dot cal-dot--bad"></span>悪天候</span>
+                        </div>
+                    </div>
+                    <div class="cal-scroll">
+                        <div class="cal-track" id="calTrack"></div>
+                    </div>
+                </div>
+
+                <div id="dateSelectedCard" class="date-selected-card hidden">
+                    <div class="date-selected-inner">
+                        <div class="date-selected-info">
+                            <p class="date-selected-label">SELECTED</p>
+                            <p class="date-selected-main" id="dateSelectedMain"></p>
+                            <p class="date-selected-sub" id="dateSelectedSub"></p>
+                        </div>
+                        <button class="btn-date-go" onclick="goToStep(1)">山を探す →</button>
+                    </div>
+                </div>
+
+                <div class="recent-searches hidden" id="recentSearches">
+                    <p class="recent-searches-label">最近の検索</p>
+                    <div class="recent-searches-chips" id="recentSearchChips"></div>
+                </div>
+            </section>
 
             <!-- Step 1: プラン設定 -->
             <section id="step1" class="step-section">
@@ -250,6 +288,9 @@
 
     <!-- トースト通知 -->
     <div id="toast" class="toast hidden"></div>
+
+    <!-- 山詳細ページオーバーレイ -->
+    <div id="mountainDetail" class="dtl-overlay"></div>
 
     <script src="main.js"></script>
 </body>

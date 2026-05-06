@@ -17,7 +17,21 @@
 - 変数名・関数名は英語のキャメルケース（例：mountainLevel, equipmentList）
 - エラーは必ずconsole.errorで出力し、ユーザーには日本語メッセージを表示
 - APIキーは環境変数で管理。コードにハードコードしない
-- ファイル構成：index.html / style.css / main.js / data/mountains.md / data/equipment.md
+- ファイル構成：
+  ```
+  /
+  ├── index.html          # メインHTML（2ステップ入力UI・結果表示）
+  ├── style.css           # スタイル（CSS変数でデザイントークン管理）
+  ├── main.js             # フロントエンドロジック（山提案・装備・比較・シェア）
+  ├── CLAUDE.md           # このファイル
+  ├── data/
+  │   ├── mountains.md    # 山データ（参照用マスター）
+  │   └── equipment.md    # 装備データ（参照用）
+  ├── docs/
+  │   └── prd.md          # 製品要件定義書
+  └── server/
+      └── index.js        # Claude API連携サーバー（現在未接続・将来用）
+  ```
 
 ## AIへの指示スタイル
 - 山の提案は必ず3〜5件。各提案に「山名・難易度・歩行時間・特徴・アクセス概要」を含める
