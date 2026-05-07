@@ -938,6 +938,61 @@ const TRAVEL_TIMES = {
     },
 };
 
+// ===== 山・出発地のマップ座標 =====
+// 各エリアごとに異なる地理的投影を使用（ピクセル座標, viewBox 400×340）
+
+const MOUNTAIN_MAP_COORDS = {
+    // 関東（lon: 138.5-140.5E, lat: 35.2-37.2N, scale: 200px/deg-lon, 170px/deg-lat）
+    '高尾山':             { x: 148, y: 267 },
+    '筑波山':             { x: 320, y: 167 },
+    '大山（丹沢）':       { x: 140, y: 301 },
+    '御岳山（奥多摩）':   { x: 132, y: 240 },
+    '陣馬山〜高尾山縦走': { x: 140, y: 260 },
+    '雲取山':             { x:  88, y: 228 },
+    '塔ノ岳（丹沢）':     { x: 134, y: 299 },
+    '那須岳':             { x: 294, y:  15 },
+    '男体山':             { x: 198, y:  73 },
+    '日光白根山':         { x: 184, y:  68 },
+    '谷川岳':             { x:  88, y:  68 },
+    '赤城山':             { x: 136, y: 112 },
+    '武尊山':             { x: 134, y:  70 },
+    '至仏山':             { x: 144, y:  56 },
+    '燧ヶ岳':             { x: 170, y:  46 },
+    '皇海山':             { x: 170, y:  77 },
+    '丹沢山':             { x: 132, y: 296 },
+    '大菩薩嶺':           { x:  52, y: 258 },
+    '両神山':             { x:  58, y: 192 },
+    '甲武信ヶ岳':         { x:  46, y: 221 },
+    '金峰山':             { x:  40, y: 209 },
+    '瑞牆山':             { x:  20, y: 213 },
+    // 中部・甲信越（lon: 136.5-139.5E, lat: 34.5-37.5N, scale: 133px/deg）
+    '入笠山':             { x: 217, y: 180 },
+    '木曽駒ヶ岳':         { x: 173, y: 194 },
+    '乗鞍岳':             { x: 140, y: 157 },
+    '北岳':               { x: 231, y: 206 },
+    '御嶽山（木曽）':     { x: 130, y: 181 },
+    // 関西（lon: 134.5-137.5E, lat: 33.5-36.0N）
+    '六甲山':             { x:  98, y: 165 },
+    '大台ヶ原':           { x: 215, y: 248 },
+    '伊吹山':             { x: 254, y:  80 },
+    '金剛山':             { x: 156, y: 218 },
+    '武奈ヶ岳':           { x: 169, y: 114 },
+};
+
+const DEPARTURE_MAP_COORDS = {
+    '東京・新宿': { x: 240, y: 257 },
+    '横浜':       { x: 228, y: 298 },
+    'さいたま':   { x: 226, y: 228 },
+    '千葉':       { x: 324, y: 271 },
+    '名古屋':     { x:  55, y: 262 },
+    '長野・松本': { x: 197, y: 142 },
+    '甲府':       { x: 275, y: 207 },
+    '大阪・梅田': { x: 133, y: 177 },
+    '京都':       { x: 169, y: 135 },
+    '神戸・三宮': { x:  92, y: 178 },
+    '奈良':       { x: 178, y: 178 },
+};
+
 // ===== 起動 =====
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1340,10 +1395,149 @@ function displayMountains() {
                     <button class="card-compare-btn" id="compare-btn-${i}" onclick="toggleCompare(${i})">＋ 比較に追加</button>
                     <button class="card-select-btn" onclick="showMountainDetail(${i})">詳しく見る</button>
                 </div>
+                <button class="card-plan-btn" onclick="openPlanModal(${i})">この山でプランを作る →</button>
             </div>
         `;
         container.appendChild(card);
     });
+
+    renderResultsMap();
+}
+
+// ===== 結果マップ表示 =====
+
+function renderResultsMap() {
+    const container = document.getElementById('resultsMap');
+    if (!container) return;
+
+    const area      = userInputs.area;
+    const departure = userInputs.departure;
+    // 提案山のランク（index→1始まり）
+    const suggestedRanks = new Map(mountainSuggestions.map((m, i) => [m.name, i + 1]));
+    const departurePt = DEPARTURE_MAP_COORDS[departure];
+
+    const W = 400, H = 340;
+    const FS = 10;          // ラベルフォントサイズ
+    const CW = 9.8;         // 日本語1文字あたりの幅（FS=10時の近似値）
+    const PX = 11, PY = 5;  // ラベルの水平・垂直パディング
+    const LH = FS + PY * 2; // ラベル高さ = 20px
+    const FONT = "'Noto Sans JP', sans-serif";
+
+    const areaMountains = MOUNTAINS_DB.filter(m => m.area === area && MOUNTAIN_MAP_COORDS[m.name]);
+
+    // グリッドライン（地図らしさを演出）
+    const gridSvg = [];
+    for (let gx = 80; gx < W; gx += 80) {
+        gridSvg.push(`<line x1="${gx}" y1="0" x2="${gx}" y2="${H}" stroke="#cfe8d8" stroke-width="0.5" stroke-dasharray="2,8"/>`);
+    }
+    for (let gy = 68; gy < H; gy += 68) {
+        gridSvg.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="#cfe8d8" stroke-width="0.5" stroke-dasharray="2,8"/>`);
+    }
+
+    // 出発地マーカー
+    let departureSvg = '';
+    if (departurePt) {
+        const { x: dx, y: dy } = departurePt;
+        const nW = Math.ceil(departure.length * CW) + PX * 2;
+        const nx = Math.max(4, Math.min(W - 4 - nW, dx - nW / 2));
+        const ny = dy > H - 56 ? dy - LH - 22 : dy + 20;
+        departureSvg = `
+            <circle cx="${dx}" cy="${dy}" r="26" fill="rgba(224,98,54,0.05)" stroke="#e06236" stroke-width="0.8" stroke-dasharray="5,5" opacity="0.7"/>
+            <circle cx="${dx}" cy="${dy}" r="14" fill="rgba(224,98,54,0.1)" stroke="#e06236" stroke-width="1.5"/>
+            <circle cx="${dx}" cy="${dy}" r="5.5" fill="#e06236"/>
+            <rect x="${nx}" y="${ny}" width="${nW}" height="${LH}" rx="${LH / 2}" fill="#e06236" filter="url(#map-shadow)"/>
+            <text x="${nx + nW / 2}" y="${ny + LH - PY + 0.5}" text-anchor="middle" dominant-baseline="auto" fill="white" font-size="${FS}" font-weight="700" font-family="${FONT}">${escapeHtml(departure)}</text>
+        `;
+    }
+
+    // 非提案山（空白ドット）と提案山（ラベル）
+    let dotsSvg   = '';
+    let labelsSvg = '';
+
+    areaMountains.forEach(m => {
+        const { x: mx, y: my } = MOUNTAIN_MAP_COORDS[m.name];
+        const rank = suggestedRanks.get(m.name);
+
+        if (rank !== undefined) {
+            // ── 提案山: ラベル ──
+            const nW = Math.ceil(m.name.length * CW) + PX * 2;
+            // ラベルの初期位置（ドットの上）
+            let lx = mx - nW / 2;
+            let ly = my - LH - 12;
+            // 画面端クランプ
+            if (lx < 4)         lx = 4;
+            if (lx + nW > W - 4) lx = W - 4 - nW;
+            if (ly < 4)          ly = my + 12;
+
+            const lcx = lx + nW / 2;          // ラベル中央X
+            const isAbove = ly < my;
+            const stemY1 = isAbove ? ly + LH + 1 : ly - 2;
+            const stemY2 = isAbove ? my - 5 : my + 5;
+            // ランクバッジ: ラベルの左上に重ねる
+            const bx = lx - 1, by = ly - 1;
+
+            labelsSvg += `
+                <g class="map-mtn-marker" onclick="mapSelectMountain(${rank - 1})" role="button" tabindex="0" aria-label="${escapeHtml(m.name)}を表示">
+                    <line x1="${lcx}" y1="${stemY1}" x2="${mx}" y2="${stemY2}" stroke="#2a6b46" stroke-width="1" stroke-dasharray="3,2" opacity="0.45"/>
+                    <circle cx="${mx}" cy="${my}" r="5" fill="#2a6b46" filter="url(#map-shadow)"/>
+                    <circle cx="${mx}" cy="${my}" r="2.5" fill="white"/>
+                    <g filter="url(#map-shadow)">
+                        <rect x="${lx}" y="${ly}" width="${nW}" height="${LH}" rx="${LH / 2}" fill="#2a6b46"/>
+                        <text x="${lcx}" y="${ly + LH - PY + 0.5}" text-anchor="middle" dominant-baseline="auto" fill="white" font-size="${FS}" font-weight="700" font-family="${FONT}">${escapeHtml(m.name)}</text>
+                    </g>
+                    <circle cx="${bx}" cy="${by}" r="7.5" fill="#e06236" filter="url(#map-shadow)"/>
+                    <text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="8" font-weight="700" font-family="sans-serif">${rank}</text>
+                </g>
+            `;
+        } else {
+            // 非提案山: 小さなリングドット
+            dotsSvg += `<circle cx="${mx}" cy="${my}" r="3.5" fill="none" stroke="#7abf98" stroke-width="1.2" opacity="0.5"/>`;
+        }
+    });
+
+    // 北方位マーク（右上）
+    const compassSvg = `
+        <g transform="translate(${W - 20}, 20)">
+            <circle r="12" fill="white" fill-opacity="0.75" stroke="#afd9c0" stroke-width="1.2"/>
+            <polygon points="0,-8 2.5,0 0,-2 -2.5,0" fill="#2a6b46"/>
+            <polygon points="0,8 2.5,0 0,2 -2.5,0" fill="#c8e0d0"/>
+            <text y="0" text-anchor="middle" dominant-baseline="central" fill="#2a6b46" font-size="5.5" font-weight="700" font-family="sans-serif">N</text>
+        </g>
+    `;
+
+    // エリア名（左下）
+    const areaLabelSvg = `<text x="12" y="${H - 10}" fill="#52a073" font-size="8.5" font-weight="700" font-family="${FONT}" opacity="0.7">${escapeHtml(area)}</text>`;
+
+    container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:auto" aria-label="${escapeHtml(area)}エリアマップ">
+        <defs>
+            <linearGradient id="map-bg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#e4f2ea"/>
+                <stop offset="100%" stop-color="#f0f8f4"/>
+            </linearGradient>
+            <filter id="map-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="rgba(15,45,28,0.2)" flood-opacity="1"/>
+            </filter>
+        </defs>
+        <rect width="${W}" height="${H}" fill="url(#map-bg)"/>
+        ${gridSvg.join('')}
+        ${dotsSvg}
+        ${departureSvg}
+        ${labelsSvg}
+        ${compassSvg}
+        ${areaLabelSvg}
+    </svg>`;
+}
+
+// ===== マップ山選択 =====
+
+function mapSelectMountain(index) {
+    const card = document.getElementById(`mountain-card-${index}`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // アニメーションを再起動するため一度外して再付与
+    card.classList.remove('map-flash');
+    void card.offsetWidth;
+    card.classList.add('map-flash');
 }
 
 // ===== 比較機能 =====
@@ -1609,8 +1803,153 @@ function resetApp() {
     document.getElementById('loadingSection').classList.add('hidden');
     document.getElementById('compareBar').classList.add('hidden');
     document.getElementById('dateSelectedCard').classList.add('hidden');
+    document.getElementById('planComplete').classList.add('hidden');
 
     goToStep(0);
+}
+
+// ===== プラン作成機能 =====
+
+let currentPlanMountainIndex = null;
+
+function openPlanModal(index) {
+    currentPlanMountainIndex = index;
+    // 直近の土曜日をデフォルト日付に
+    const today = new Date();
+    const daysToSaturday = ((6 - today.getDay()) + 7) % 7 || 7;
+    const nextSat = new Date(today);
+    nextSat.setDate(today.getDate() + daysToSaturday);
+    document.getElementById('planDate').value = nextSat.toISOString().slice(0, 10);
+    document.getElementById('planTime').value = '08:00';
+    document.getElementById('planPlace').value = userInputs.departure || '';
+    document.getElementById('planCourse').value = '';
+    document.getElementById('planModal').classList.remove('hidden');
+}
+
+function closePlanModal() {
+    document.getElementById('planModal').classList.add('hidden');
+}
+
+function closePlanModalIfOverlay(e) {
+    if (e.target === e.currentTarget) closePlanModal();
+}
+
+function createPlan() {
+    const dateVal  = document.getElementById('planDate').value;
+    const timeVal  = document.getElementById('planTime').value;
+    const placeVal = document.getElementById('planPlace').value.trim();
+    const courseVal = document.getElementById('planCourse').value.trim();
+
+    let dateLabel = '';
+    if (dateVal) {
+        const d = new Date(dateVal + 'T00:00:00');
+        const days = ['日','月','火','水','木','金','土'];
+        dateLabel = `${d.getMonth() + 1}/${d.getDate()}（${days[d.getDay()]}）`;
+    }
+
+    const plan = { date: dateVal, dateLabel, time: timeVal, place: placeVal, course: courseVal };
+    closePlanModal();
+    showPlanComplete(mountainSuggestions[currentPlanMountainIndex], plan);
+}
+
+function showPlanComplete(mountain, plan) {
+    ['step1', 'step2', 'results'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('compareBar').classList.add('hidden');
+    document.getElementById('planComplete').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 招待カードのイラスト
+    document.getElementById('planInviteIllustration').innerHTML = generateMountainSvg(mountain._raw);
+
+    // メタ情報とタイトル
+    const metaParts = [plan.dateLabel, plan.place ? plan.place + '発' : ''].filter(Boolean);
+    document.getElementById('planInviteMeta').textContent = metaParts.join('・');
+    document.getElementById('planInviteTitle').textContent = `${mountain.name}に登りませんか？`;
+
+    // サマリー列
+    const meetingLabel = [plan.time, plan.place].filter(Boolean).join(' ') || '—';
+    document.getElementById('planSummaryDate').textContent     = plan.dateLabel || '—';
+    document.getElementById('planSummaryMeeting').textContent  = meetingLabel;
+    document.getElementById('planSummaryCourse').textContent   = plan.course || mountain.walkTime;
+    document.getElementById('planSummaryDiff').textContent     = mountain.difficulty;
+
+    // シェアURL
+    const planUrl = buildPlanUrl(mountain, plan);
+    window._currentPlanUrl = planUrl;
+    document.getElementById('planSummaryLink').textContent =
+        planUrl.replace(/^https?:\/\//, '').slice(0, 45);
+
+    // プランの内容
+    const rows = [];
+    if (plan.dateLabel) {
+        const dayLabel = userInputs.stay === '1泊2日' ? `${plan.dateLabel}・1泊2日` : `${plan.dateLabel}・終日`;
+        rows.push(['日時', dayLabel]);
+    }
+    if (plan.place || plan.time) rows.push(['集合', [plan.time, plan.place].filter(Boolean).join(' ')]);
+    if (plan.course) rows.push(['コース', plan.course]);
+    rows.push(['アクセス', mountain.access]);
+    const equipment = getMockEquipmentList(mountain, userInputs);
+    const basicItems = equipment[0]?.items?.slice(0, 5) || [];
+    if (basicItems.length) rows.push(['持ち物', basicItems.join('、')]);
+
+    document.getElementById('planDetailsTable').innerHTML = rows.map(([ label, value ], i) => `
+        <div class="plan-detail-row${i === rows.length - 1 ? ' last' : ''}">
+            <span class="plan-detail-label">${escapeHtml(label)}</span>
+            <span class="plan-detail-value">${escapeHtml(value)}</span>
+        </div>
+    `).join('');
+
+    // ネイティブシェアボタンの表示制御
+    document.getElementById('btnNativeShare').style.display = navigator.share ? '' : 'none';
+}
+
+function buildPlanUrl(mountain, plan) {
+    const payload = {
+        v: 2,
+        mountain: mountain.name,
+        date: plan.date,
+        time: plan.time,
+        place: plan.place,
+        course: plan.course,
+        stay: userInputs.stay,
+        departure: userInputs.departure,
+        transport: userInputs.transport,
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    return location.origin + location.pathname + '#plan=' + encoded;
+}
+
+function copyPlanLink() {
+    const url = window._currentPlanUrl || location.href;
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(url)
+            .then(() => showToast('リンクをコピーしました！LINEやトークに貼り付けてください'))
+            .catch(() => showToast('コピーに失敗しました。URLをコピーしてください'));
+    } else {
+        showToast('URLをコピーしてシェアしてください');
+    }
+}
+
+function sharePlanToLine() {
+    const url = window._currentPlanUrl || location.href;
+    const text = document.getElementById('planInviteTitle')?.textContent || '一緒に登山しませんか？';
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + '\n' + url)}`, '_blank');
+}
+
+async function nativeShare() {
+    const url = window._currentPlanUrl || location.href;
+    const title = document.getElementById('planInviteTitle')?.textContent || '登山プラン';
+    try {
+        await navigator.share({ title, url });
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error('シェアに失敗しました:', e);
+    }
+}
+
+function backToResults() {
+    document.getElementById('planComplete').classList.add('hidden');
+    document.getElementById('results').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ===== XSS対策 =====

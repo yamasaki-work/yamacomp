@@ -1200,6 +1200,369 @@ main {
     border-left: 3px solid #f59e0b;
 }
 
+/* ===== プランを作るボタン（山カード内） ===== */
+.card-plan-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px 14px;
+    background: transparent;
+    color: var(--ac-500);
+    border: 1.5px solid var(--ac-500);
+    border-radius: var(--r-md);
+    font-size: 0.85rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+.card-plan-btn:hover {
+    background: var(--ac-500);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(224,98,54,.28);
+    transform: translateY(-1px);
+}
+
+.card-plan-btn:active { transform: scale(0.97); }
+
+/* ===== プラン作成モーダル ===== */
+.plan-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,45,28,.45);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.plan-modal {
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    box-shadow: var(--sh-lg);
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+    animation: modalIn 0.24s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.plan-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border-2);
+}
+
+.plan-modal-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.plan-modal-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.plan-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.plan-modal-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
+.plan-modal-optional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.plan-modal-field input {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    outline: none;
+}
+
+.plan-modal-field input:focus {
+    border-color: var(--c-400);
+    box-shadow: 0 0 0 3px rgba(82,160,115,.15);
+}
+
+.plan-modal-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border-2);
+}
+
+.plan-modal-footer .btn { flex: 1; }
+
+/* ===== プラン作成完了ページ ===== */
+.plan-complete-header { margin-bottom: 24px; }
+
+.plan-complete-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ac-500);
+    margin-bottom: 8px;
+}
+
+.plan-complete-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 0;
+}
+
+.plan-invite-card {
+    position: relative;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    background: #f3ede3;
+    height: 220px;
+    margin-bottom: 12px;
+    box-shadow: var(--sh-md);
+}
+
+.plan-invite-sun {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: #e8a87c;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.plan-invite-illustration {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.plan-invite-illustration svg {
+    width: 100%;
+    height: 100%;
+}
+
+.plan-invite-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: linear-gradient(to bottom, transparent 30%, rgba(20,38,28,.58) 100%);
+}
+
+.plan-invite-meta {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.88);
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+.plan-invite-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    text-shadow: 0 2px 8px rgba(0,0,0,.35);
+    margin: 0;
+}
+
+.plan-summary-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    padding: 16px 20px 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--sh-sm);
+}
+
+.plan-summary-cols {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.plan-summary-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.plan-summary-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+.plan-summary-value {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.plan-summary-link {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-2);
+    padding-top: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.plan-summary-link::before {
+    content: '🔗';
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.plan-share-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.btn-plan-copy {
+    flex: 1;
+    padding: 14px;
+    background: var(--ac-500);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-lg);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+    box-shadow: 0 2px 10px rgba(224,98,54,.3);
+    letter-spacing: 0.01em;
+}
+
+.btn-plan-copy:hover {
+    background: var(--ac-600);
+    box-shadow: 0 4px 16px rgba(224,98,54,.4);
+    transform: translateY(-1px);
+}
+
+.btn-plan-line {
+    padding: 14px 20px;
+    background: #06c755;
+    color: #fff;
+    border: none;
+    border-radius: var(--r-lg);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t-fast), transform var(--t-fast);
+    white-space: nowrap;
+}
+
+.btn-plan-line:hover { background: #05b34c; transform: translateY(-1px); }
+
+.btn-plan-native {
+    padding: 14px 16px;
+    background: var(--surface);
+    color: var(--text-sub);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-lg);
+    font-size: 1rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+
+.btn-plan-native:hover {
+    background: var(--n-100);
+    border-color: var(--n-300);
+    transform: translateY(-1px);
+}
+
+.plan-details-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    padding: 20px 24px;
+    box-shadow: var(--sh-sm);
+    margin-bottom: 24px;
+}
+
+.plan-details-card h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+}
+
+.plan-detail-row {
+    display: grid;
+    grid-template-columns: 5em 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-2);
+    align-items: baseline;
+}
+
+.plan-detail-row.last { border-bottom: none; }
+
+.plan-detail-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.plan-detail-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.6;
+}
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 600px) {
     #mountainCards {
@@ -1971,4 +2334,93 @@ main {
     .dtl-stat-main { font-size: 1.1rem; }
     .dtl-stat-main--sm { font-size: 0.8125rem; }
     .dtl-stat { padding: 12px 6px; }
+}
+
+/* ===== 結果レイアウト（リスト＋マップ） ===== */
+
+.results-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 40px;
+}
+
+/* デスクトップ: 2カラム */
+@media (min-width: 900px) {
+    .results-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .results-map-panel {
+        position: sticky;
+        top: 16px;
+    }
+
+    /* 2カラム時はカードを1列に */
+    .results-list #mountainCards {
+        grid-template-columns: 1fr;
+        margin-bottom: 0;
+    }
+}
+
+/* マップパネル */
+.results-map-panel {
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(15,45,28,.08), 0 1px 4px rgba(15,45,28,.04);
+}
+
+.results-map-header {
+    padding: 9px 14px 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--c-50);
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.results-map-header::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-400);
+}
+
+#resultsMap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* マップマーカー：ホバー */
+.map-mtn-marker {
+    cursor: pointer;
+    transition: opacity 0.12s;
+}
+.map-mtn-marker:hover {
+    opacity: 0.78;
+}
+
+/* カードフラッシュ：マップクリック時のハイライト */
+@keyframes map-card-flash {
+    0%   { box-shadow: 0 2px 12px rgba(15,45,28,.08), 0 1px 3px rgba(15,45,28,.05);
+           border-color: var(--border-2); }
+    15%  { box-shadow: 0 0 0 3px rgba(54,133,88,0.35), 0 4px 20px rgba(54,133,88,0.2);
+           border-color: var(--c-400); }
+    75%  { box-shadow: 0 0 0 3px rgba(54,133,88,0.35), 0 4px 20px rgba(54,133,88,0.2);
+           border-color: var(--c-400); }
+    100% { box-shadow: 0 2px 12px rgba(15,45,28,.08), 0 1px 3px rgba(15,45,28,.05);
+           border-color: var(--border-2); }
+}
+.mountain-card.map-flash {
+    animation: map-card-flash 1.4s ease forwards;
 }
