@@ -938,35 +938,228 @@ const TRAVEL_TIMES = {
     },
 };
 
+// ===== 山・出発地のマップ座標 =====
+// 各エリアごとに異なる地理的投影を使用（ピクセル座標, viewBox 400×340）
+
+const MOUNTAIN_MAP_COORDS = {
+    // 関東（lon: 138.5-140.5E, lat: 35.2-37.2N, scale: 200px/deg-lon, 170px/deg-lat）
+    '高尾山':             { x: 148, y: 267 },
+    '筑波山':             { x: 320, y: 167 },
+    '大山（丹沢）':       { x: 140, y: 301 },
+    '御岳山（奥多摩）':   { x: 132, y: 240 },
+    '陣馬山〜高尾山縦走': { x: 140, y: 260 },
+    '雲取山':             { x:  88, y: 228 },
+    '塔ノ岳（丹沢）':     { x: 134, y: 299 },
+    '那須岳':             { x: 294, y:  15 },
+    '男体山':             { x: 198, y:  73 },
+    '日光白根山':         { x: 184, y:  68 },
+    '谷川岳':             { x:  88, y:  68 },
+    '赤城山':             { x: 136, y: 112 },
+    '武尊山':             { x: 134, y:  70 },
+    '至仏山':             { x: 144, y:  56 },
+    '燧ヶ岳':             { x: 170, y:  46 },
+    '皇海山':             { x: 170, y:  77 },
+    '丹沢山':             { x: 132, y: 296 },
+    '大菩薩嶺':           { x:  52, y: 258 },
+    '両神山':             { x:  58, y: 192 },
+    '甲武信ヶ岳':         { x:  46, y: 221 },
+    '金峰山':             { x:  40, y: 209 },
+    '瑞牆山':             { x:  20, y: 213 },
+    // 中部・甲信越（lon: 136.5-139.5E, lat: 34.5-37.5N, scale: 133px/deg）
+    '入笠山':             { x: 217, y: 180 },
+    '木曽駒ヶ岳':         { x: 173, y: 194 },
+    '乗鞍岳':             { x: 140, y: 157 },
+    '北岳':               { x: 231, y: 206 },
+    '御嶽山（木曽）':     { x: 130, y: 181 },
+    // 関西（lon: 134.5-137.5E, lat: 33.5-36.0N）
+    '六甲山':             { x:  98, y: 165 },
+    '大台ヶ原':           { x: 215, y: 248 },
+    '伊吹山':             { x: 254, y:  80 },
+    '金剛山':             { x: 156, y: 218 },
+    '武奈ヶ岳':           { x: 169, y: 114 },
+};
+
+const DEPARTURE_MAP_COORDS = {
+    '東京・新宿': { x: 240, y: 257 },
+    '横浜':       { x: 228, y: 298 },
+    'さいたま':   { x: 226, y: 228 },
+    '千葉':       { x: 324, y: 271 },
+    '名古屋':     { x:  55, y: 262 },
+    '長野・松本': { x: 197, y: 142 },
+    '甲府':       { x: 275, y: 207 },
+    '大阪・梅田': { x: 133, y: 177 },
+    '京都':       { x: 169, y: 135 },
+    '神戸・三宮': { x:  92, y: 178 },
+    '奈良':       { x: 178, y: 178 },
+};
+
 // ===== 起動 =====
 
 document.addEventListener('DOMContentLoaded', () => {
+    initCalendar();
+    loadRecentSearches();
     initShareFromUrl();
 });
+
+// ===== カレンダー =====
+
+function initCalendar() {
+    const today = new Date();
+    const track = document.getElementById('calTrack');
+    const days = ['日', '月', '火', '水', '木', '金', '土'];
+
+    for (let i = 0; i < 21; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+
+        const isBad = simulateBadWeather(d);
+        const isToday = i === 0;
+
+        const cell = document.createElement('button');
+        cell.className = 'cal-cell' + (isToday ? ' cal-cell--today' : '');
+        cell.type = 'button';
+        cell.dataset.dateIso = d.toISOString().slice(0, 10);
+
+        cell.innerHTML = `
+            <span class="cal-dot ${isBad ? 'cal-dot--bad' : 'cal-dot--ok'}"></span>
+            <span class="cal-day">${days[d.getDay()]}</span>
+            <span class="cal-date">${d.getDate()}</span>
+        `;
+        cell.addEventListener('click', () => onDateCellClick(d, cell, isBad));
+        track.appendChild(cell);
+    }
+
+    const m = today.getMonth() + 1;
+    document.getElementById('calMonthLabel').textContent = `${today.getFullYear()}年 ${m}月`;
+}
+
+function simulateBadWeather(date) {
+    const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    return (seed * 1103515245 + 12345) % 5 === 0;
+}
+
+function onDateCellClick(date, cell, isBad) {
+    document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('cal-cell--selected'));
+    cell.classList.add('cal-cell--selected');
+
+    userInputs.date   = date.toISOString().slice(0, 10);
+    userInputs.season = getSeasonFromDate(date);
+
+    const days = ['日', '月', '火', '水', '木', '金', '土'];
+    const dateLabel = `${date.getMonth() + 1}月${date.getDate()}日 (${days[date.getDay()]})`;
+
+    document.getElementById('dateSelectedMain').textContent = `${dateLabel}・${userInputs.season}`;
+
+    const weatherText = isBad ? '雨予報・登山注意' : '晴れ予報';
+    const seasonPeak  = { '春': '新緑のピーク', '夏': '夏山シーズン', '秋': '紅葉シーズン', '冬': '冬山シーズン' }[userInputs.season] || '';
+    const count       = isBad ? Math.floor(MOUNTAINS_DB.length * 0.3) : MOUNTAINS_DB.length;
+
+    document.getElementById('dateSelectedSub').innerHTML =
+        `${weatherText}・${seasonPeak}・この日に登れる山が <strong>${count}座</strong>`;
+
+    document.getElementById('dateSelectedCard').classList.remove('hidden');
+
+    // 月ラベルをスクロール位置に合わせて更新
+    document.getElementById('calMonthLabel').textContent =
+        `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
+}
+
+function getSeasonFromDate(date) {
+    const m = date.getMonth() + 1;
+    if (m >= 3 && m <= 5) return '春';
+    if (m >= 6 && m <= 8) return '夏';
+    if (m >= 9 && m <= 11) return '秋';
+    return '冬';
+}
+
+// ===== 最近の検索 =====
+
+const RECENT_KEY = 'yamacomp_recent_v1';
+
+function loadRecentSearches() {
+    const list = getRecentSearches();
+    if (!list.length) return;
+    const container = document.getElementById('recentSearchChips');
+    container.innerHTML = list.map((r, i) =>
+        `<button class="recent-chip" type="button" onclick="applyRecentSearch(${i})">${escapeHtml(r.label)}</button>`
+    ).join('');
+    document.getElementById('recentSearches').classList.remove('hidden');
+}
+
+function getRecentSearches() {
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+}
+
+function saveRecentSearch(inputs) {
+    const purposeText = inputs.purposes && inputs.purposes.length ? inputs.purposes[0] : '';
+    const label = [inputs.departure, inputs.walkTime, purposeText].filter(Boolean).join('・');
+    const entry = { label, inputs: { ...inputs } };
+    const list = getRecentSearches().filter(r => r.label !== label);
+    list.unshift(entry);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 5)));
+}
+
+function applyRecentSearch(index) {
+    const list = getRecentSearches();
+    const entry = list[index];
+    if (!entry) return;
+    userInputs = { ...entry.inputs, season: getCurrentSeason() };
+
+    // Step1 の選択状態を復元
+    ['stay', 'departure', 'transport'].forEach(name => {
+        const el = document.querySelector(`input[name="${name}"][value="${userInputs[name]}"]`);
+        if (el) el.checked = true;
+    });
+    if (userInputs.walkTime) {
+        const el = document.querySelector(`input[name="walkTime"][value="${userInputs.walkTime}"]`);
+        if (el) el.checked = true;
+    }
+    (userInputs.purposes || []).forEach(p => {
+        const el = document.querySelector(`input[name="purpose"][value="${p}"]`);
+        if (el) el.checked = true;
+    });
+
+    submitForm();
+}
 
 // ===== ステップ遷移 =====
 
 function goToStep(target) {
+    if (target === 1 && !validateStep0()) return;
     if (target === 2 && !validateStep1()) return;
 
-    ['step1', 'step2', 'results'].forEach(id => {
+    ['step0', 'step1', 'step2', 'results'].forEach(id => {
         document.getElementById(id).classList.add('hidden');
     });
 
-    for (let i = 1; i <= 2; i++) {
-        const el = document.getElementById(`indicator-${i}`);
-        el.classList.remove('active', 'done');
-        if (i < target) el.classList.add('done');
-        if (i === target) el.classList.add('active');
+    // step0 ではステップナビを非表示
+    const nav = document.getElementById('stepNav');
+    if (nav) nav.classList.toggle('hidden', target === 0);
+
+    if (target >= 1) {
+        for (let i = 1; i <= 2; i++) {
+            const el = document.getElementById(`indicator-${i}`);
+            el.classList.remove('active', 'done');
+            if (i < target) el.classList.add('done');
+            if (i === target) el.classList.add('active');
+        }
+        const line = document.getElementById('line-1');
+        if (line) line.classList.toggle('done', target > 1);
     }
-    const line = document.getElementById('line-1');
-    if (line) line.classList.toggle('done', target > 1);
 
     document.getElementById(`step${target}`).classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ===== バリデーション =====
+
+function validateStep0() {
+    if (!userInputs.date) {
+        alert('日付を選択してください');
+        return false;
+    }
+    return true;
+}
 
 function validateStep1() {
     const stay      = document.querySelector('input[name="stay"]:checked');
@@ -1000,9 +1193,11 @@ function validateStep2() {
 async function submitForm() {
     if (!validateStep2()) return;
 
-    userInputs.season = getCurrentSeason();
+    if (!userInputs.season) userInputs.season = getCurrentSeason();
+    saveRecentSearch(userInputs);
+    loadRecentSearches();
 
-    ['step1', 'step2'].forEach(id => {
+    ['step0', 'step1', 'step2'].forEach(id => {
         document.getElementById(id).classList.add('hidden');
     });
     for (let i = 1; i <= 2; i++) {
@@ -1198,12 +1393,151 @@ function displayMountains() {
                 ${m.seasonNote ? `<p class="card-season">⚠️ ${escapeHtml(m.seasonNote)}</p>` : ''}
                 <div class="card-actions">
                     <button class="card-compare-btn" id="compare-btn-${i}" onclick="toggleCompare(${i})">＋ 比較に追加</button>
-                    <button class="card-select-btn" onclick="selectMountain(${i})">装備を見る</button>
+                    <button class="card-select-btn" onclick="showMountainDetail(${i})">詳しく見る</button>
                 </div>
+                <button class="card-plan-btn" onclick="openPlanModal(${i})">この山でプランを作る →</button>
             </div>
         `;
         container.appendChild(card);
     });
+
+    renderResultsMap();
+}
+
+// ===== 結果マップ表示 =====
+
+function renderResultsMap() {
+    const container = document.getElementById('resultsMap');
+    if (!container) return;
+
+    const area      = userInputs.area;
+    const departure = userInputs.departure;
+    // 提案山のランク（index→1始まり）
+    const suggestedRanks = new Map(mountainSuggestions.map((m, i) => [m.name, i + 1]));
+    const departurePt = DEPARTURE_MAP_COORDS[departure];
+
+    const W = 400, H = 340;
+    const FS = 10;          // ラベルフォントサイズ
+    const CW = 9.8;         // 日本語1文字あたりの幅（FS=10時の近似値）
+    const PX = 11, PY = 5;  // ラベルの水平・垂直パディング
+    const LH = FS + PY * 2; // ラベル高さ = 20px
+    const FONT = "'Noto Sans JP', sans-serif";
+
+    const areaMountains = MOUNTAINS_DB.filter(m => m.area === area && MOUNTAIN_MAP_COORDS[m.name]);
+
+    // グリッドライン（地図らしさを演出）
+    const gridSvg = [];
+    for (let gx = 80; gx < W; gx += 80) {
+        gridSvg.push(`<line x1="${gx}" y1="0" x2="${gx}" y2="${H}" stroke="#cfe8d8" stroke-width="0.5" stroke-dasharray="2,8"/>`);
+    }
+    for (let gy = 68; gy < H; gy += 68) {
+        gridSvg.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="#cfe8d8" stroke-width="0.5" stroke-dasharray="2,8"/>`);
+    }
+
+    // 出発地マーカー
+    let departureSvg = '';
+    if (departurePt) {
+        const { x: dx, y: dy } = departurePt;
+        const nW = Math.ceil(departure.length * CW) + PX * 2;
+        const nx = Math.max(4, Math.min(W - 4 - nW, dx - nW / 2));
+        const ny = dy > H - 56 ? dy - LH - 22 : dy + 20;
+        departureSvg = `
+            <circle cx="${dx}" cy="${dy}" r="26" fill="rgba(224,98,54,0.05)" stroke="#e06236" stroke-width="0.8" stroke-dasharray="5,5" opacity="0.7"/>
+            <circle cx="${dx}" cy="${dy}" r="14" fill="rgba(224,98,54,0.1)" stroke="#e06236" stroke-width="1.5"/>
+            <circle cx="${dx}" cy="${dy}" r="5.5" fill="#e06236"/>
+            <rect x="${nx}" y="${ny}" width="${nW}" height="${LH}" rx="${LH / 2}" fill="#e06236" filter="url(#map-shadow)"/>
+            <text x="${nx + nW / 2}" y="${ny + LH - PY + 0.5}" text-anchor="middle" dominant-baseline="auto" fill="white" font-size="${FS}" font-weight="700" font-family="${FONT}">${escapeHtml(departure)}</text>
+        `;
+    }
+
+    // 非提案山（空白ドット）と提案山（ラベル）
+    let dotsSvg   = '';
+    let labelsSvg = '';
+
+    areaMountains.forEach(m => {
+        const { x: mx, y: my } = MOUNTAIN_MAP_COORDS[m.name];
+        const rank = suggestedRanks.get(m.name);
+
+        if (rank !== undefined) {
+            // ── 提案山: ラベル ──
+            const nW = Math.ceil(m.name.length * CW) + PX * 2;
+            // ラベルの初期位置（ドットの上）
+            let lx = mx - nW / 2;
+            let ly = my - LH - 12;
+            // 画面端クランプ
+            if (lx < 4)         lx = 4;
+            if (lx + nW > W - 4) lx = W - 4 - nW;
+            if (ly < 4)          ly = my + 12;
+
+            const lcx = lx + nW / 2;          // ラベル中央X
+            const isAbove = ly < my;
+            const stemY1 = isAbove ? ly + LH + 1 : ly - 2;
+            const stemY2 = isAbove ? my - 5 : my + 5;
+            // ランクバッジ: ラベルの左上に重ねる
+            const bx = lx - 1, by = ly - 1;
+
+            labelsSvg += `
+                <g class="map-mtn-marker" onclick="mapSelectMountain(${rank - 1})" role="button" tabindex="0" aria-label="${escapeHtml(m.name)}を表示">
+                    <line x1="${lcx}" y1="${stemY1}" x2="${mx}" y2="${stemY2}" stroke="#2a6b46" stroke-width="1" stroke-dasharray="3,2" opacity="0.45"/>
+                    <circle cx="${mx}" cy="${my}" r="5" fill="#2a6b46" filter="url(#map-shadow)"/>
+                    <circle cx="${mx}" cy="${my}" r="2.5" fill="white"/>
+                    <g filter="url(#map-shadow)">
+                        <rect x="${lx}" y="${ly}" width="${nW}" height="${LH}" rx="${LH / 2}" fill="#2a6b46"/>
+                        <text x="${lcx}" y="${ly + LH - PY + 0.5}" text-anchor="middle" dominant-baseline="auto" fill="white" font-size="${FS}" font-weight="700" font-family="${FONT}">${escapeHtml(m.name)}</text>
+                    </g>
+                    <circle cx="${bx}" cy="${by}" r="7.5" fill="#e06236" filter="url(#map-shadow)"/>
+                    <text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="8" font-weight="700" font-family="sans-serif">${rank}</text>
+                </g>
+            `;
+        } else {
+            // 非提案山: 小さなリングドット
+            dotsSvg += `<circle cx="${mx}" cy="${my}" r="3.5" fill="none" stroke="#7abf98" stroke-width="1.2" opacity="0.5"/>`;
+        }
+    });
+
+    // 北方位マーク（右上）
+    const compassSvg = `
+        <g transform="translate(${W - 20}, 20)">
+            <circle r="12" fill="white" fill-opacity="0.75" stroke="#afd9c0" stroke-width="1.2"/>
+            <polygon points="0,-8 2.5,0 0,-2 -2.5,0" fill="#2a6b46"/>
+            <polygon points="0,8 2.5,0 0,2 -2.5,0" fill="#c8e0d0"/>
+            <text y="0" text-anchor="middle" dominant-baseline="central" fill="#2a6b46" font-size="5.5" font-weight="700" font-family="sans-serif">N</text>
+        </g>
+    `;
+
+    // エリア名（左下）
+    const areaLabelSvg = `<text x="12" y="${H - 10}" fill="#52a073" font-size="8.5" font-weight="700" font-family="${FONT}" opacity="0.7">${escapeHtml(area)}</text>`;
+
+    container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:auto" aria-label="${escapeHtml(area)}エリアマップ">
+        <defs>
+            <linearGradient id="map-bg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#e4f2ea"/>
+                <stop offset="100%" stop-color="#f0f8f4"/>
+            </linearGradient>
+            <filter id="map-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="rgba(15,45,28,0.2)" flood-opacity="1"/>
+            </filter>
+        </defs>
+        <rect width="${W}" height="${H}" fill="url(#map-bg)"/>
+        ${gridSvg.join('')}
+        ${dotsSvg}
+        ${departureSvg}
+        ${labelsSvg}
+        ${compassSvg}
+        ${areaLabelSvg}
+    </svg>`;
+}
+
+// ===== マップ山選択 =====
+
+function mapSelectMountain(index) {
+    const card = document.getElementById(`mountain-card-${index}`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // アニメーションを再起動するため一度外して再付与
+    card.classList.remove('map-flash');
+    void card.offsetWidth;
+    card.classList.add('map-flash');
 }
 
 // ===== 比較機能 =====
@@ -1314,7 +1648,7 @@ function shareResults() {
 function initShareFromUrl() {
     const hash = location.hash;
     if (!hash.startsWith('#share=')) {
-        goToStep(1);
+        goToStep(0);
         return;
     }
     try {
@@ -1368,7 +1702,7 @@ function initShareFromUrl() {
         showToast('友人からシェアされた山のリストを表示しています');
     } catch (e) {
         console.error('シェアURLの解析に失敗しました:', e);
-        goToStep(1);
+        goToStep(0);
     }
 }
 
@@ -1460,6 +1794,7 @@ function resetApp() {
 
     document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
     document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+    document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('cal-cell--selected'));
 
     document.getElementById('mountainCards').innerHTML = '';
     document.getElementById('equipmentList').innerHTML = '';
@@ -1467,8 +1802,154 @@ function resetApp() {
     document.getElementById('resultsContent').classList.add('hidden');
     document.getElementById('loadingSection').classList.add('hidden');
     document.getElementById('compareBar').classList.add('hidden');
+    document.getElementById('dateSelectedCard').classList.add('hidden');
+    document.getElementById('planComplete').classList.add('hidden');
 
-    goToStep(1);
+    goToStep(0);
+}
+
+// ===== プラン作成機能 =====
+
+let currentPlanMountainIndex = null;
+
+function openPlanModal(index) {
+    currentPlanMountainIndex = index;
+    // 直近の土曜日をデフォルト日付に
+    const today = new Date();
+    const daysToSaturday = ((6 - today.getDay()) + 7) % 7 || 7;
+    const nextSat = new Date(today);
+    nextSat.setDate(today.getDate() + daysToSaturday);
+    document.getElementById('planDate').value = nextSat.toISOString().slice(0, 10);
+    document.getElementById('planTime').value = '08:00';
+    document.getElementById('planPlace').value = userInputs.departure || '';
+    document.getElementById('planCourse').value = '';
+    document.getElementById('planModal').classList.remove('hidden');
+}
+
+function closePlanModal() {
+    document.getElementById('planModal').classList.add('hidden');
+}
+
+function closePlanModalIfOverlay(e) {
+    if (e.target === e.currentTarget) closePlanModal();
+}
+
+function createPlan() {
+    const dateVal  = document.getElementById('planDate').value;
+    const timeVal  = document.getElementById('planTime').value;
+    const placeVal = document.getElementById('planPlace').value.trim();
+    const courseVal = document.getElementById('planCourse').value.trim();
+
+    let dateLabel = '';
+    if (dateVal) {
+        const d = new Date(dateVal + 'T00:00:00');
+        const days = ['日','月','火','水','木','金','土'];
+        dateLabel = `${d.getMonth() + 1}/${d.getDate()}（${days[d.getDay()]}）`;
+    }
+
+    const plan = { date: dateVal, dateLabel, time: timeVal, place: placeVal, course: courseVal };
+    closePlanModal();
+    showPlanComplete(mountainSuggestions[currentPlanMountainIndex], plan);
+}
+
+function showPlanComplete(mountain, plan) {
+    ['step1', 'step2', 'results'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('compareBar').classList.add('hidden');
+    document.getElementById('planComplete').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 招待カードのイラスト
+    document.getElementById('planInviteIllustration').innerHTML = generateMountainSvg(mountain._raw);
+
+    // メタ情報とタイトル
+    const metaParts = [plan.dateLabel, plan.place ? plan.place + '発' : ''].filter(Boolean);
+    document.getElementById('planInviteMeta').textContent = metaParts.join('・');
+    document.getElementById('planInviteTitle').textContent = `${mountain.name}に登りませんか？`;
+
+    // サマリー列
+    const meetingLabel = [plan.time, plan.place].filter(Boolean).join(' ') || '—';
+    document.getElementById('planSummaryDate').textContent     = plan.dateLabel || '—';
+    document.getElementById('planSummaryMeeting').textContent  = meetingLabel;
+    document.getElementById('planSummaryCourse').textContent   = plan.course || mountain.walkTime;
+    document.getElementById('planSummaryDiff').textContent     = mountain.difficulty;
+
+    // シェアURL
+    const planUrl = buildPlanUrl(mountain, plan);
+    window._currentPlanUrl = planUrl;
+    document.getElementById('planSummaryLink').textContent =
+        planUrl.replace(/^https?:\/\//, '').slice(0, 45);
+
+    // プランの内容
+    const rows = [];
+    if (plan.dateLabel) {
+        const dayLabel = userInputs.stay === '1泊2日' ? `${plan.dateLabel}・1泊2日` : `${plan.dateLabel}・終日`;
+        rows.push(['日時', dayLabel]);
+    }
+    if (plan.place || plan.time) rows.push(['集合', [plan.time, plan.place].filter(Boolean).join(' ')]);
+    if (plan.course) rows.push(['コース', plan.course]);
+    rows.push(['アクセス', mountain.access]);
+    const equipment = getMockEquipmentList(mountain, userInputs);
+    const basicItems = equipment[0]?.items?.slice(0, 5) || [];
+    if (basicItems.length) rows.push(['持ち物', basicItems.join('、')]);
+
+    document.getElementById('planDetailsTable').innerHTML = rows.map(([ label, value ], i) => `
+        <div class="plan-detail-row${i === rows.length - 1 ? ' last' : ''}">
+            <span class="plan-detail-label">${escapeHtml(label)}</span>
+            <span class="plan-detail-value">${escapeHtml(value)}</span>
+        </div>
+    `).join('');
+
+    // ネイティブシェアボタンの表示制御
+    document.getElementById('btnNativeShare').style.display = navigator.share ? '' : 'none';
+}
+
+function buildPlanUrl(mountain, plan) {
+    const payload = {
+        v: 2,
+        mountain: mountain.name,
+        date: plan.date,
+        time: plan.time,
+        place: plan.place,
+        course: plan.course,
+        stay: userInputs.stay,
+        departure: userInputs.departure,
+        transport: userInputs.transport,
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    return location.origin + location.pathname + '#plan=' + encoded;
+}
+
+function copyPlanLink() {
+    const url = window._currentPlanUrl || location.href;
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(url)
+            .then(() => showToast('リンクをコピーしました！LINEやトークに貼り付けてください'))
+            .catch(() => showToast('コピーに失敗しました。URLをコピーしてください'));
+    } else {
+        showToast('URLをコピーしてシェアしてください');
+    }
+}
+
+function sharePlanToLine() {
+    const url = window._currentPlanUrl || location.href;
+    const text = document.getElementById('planInviteTitle')?.textContent || '一緒に登山しませんか？';
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + '\n' + url)}`, '_blank');
+}
+
+async function nativeShare() {
+    const url = window._currentPlanUrl || location.href;
+    const title = document.getElementById('planInviteTitle')?.textContent || '登山プラン';
+    try {
+        await navigator.share({ title, url });
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error('シェアに失敗しました:', e);
+    }
+}
+
+function backToResults() {
+    document.getElementById('planComplete').classList.add('hidden');
+    document.getElementById('results').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ===== XSS対策 =====
@@ -1480,4 +1961,509 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// ===== 山詳細ページ補完データ（標高・読み仮名・距離・獲得標高） =====
+
+const MOUNTAIN_EXTRAS = {
+    '高尾山':             { elevation: 599,  reading: 'たかおさん',           prefecture: '東京都',   distanceKm: 6.0,  elevationGainM: 450  },
+    '筑波山':             { elevation: 877,  reading: 'つくばさん',           prefecture: '茨城県',   distanceKm: 6.5,  elevationGainM: 600  },
+    '大山（丹沢）':       { elevation: 1252, reading: 'おおやま（たんざわ）', prefecture: '神奈川県', distanceKm: 7.0,  elevationGainM: 800  },
+    '御岳山（奥多摩）':   { elevation: 929,  reading: 'みたけさん',           prefecture: '東京都',   distanceKm: 5.5,  elevationGainM: 500  },
+    '陣馬山〜高尾山縦走': { elevation: 857,  reading: 'じんばさん縦走',       prefecture: '東京都',   distanceKm: 17.0, elevationGainM: 1100 },
+    '雲取山':             { elevation: 2017, reading: 'くもとりやま',         prefecture: '東京都',   distanceKm: 22.0, elevationGainM: 1500 },
+    '塔ノ岳（丹沢）':     { elevation: 1491, reading: 'とうのたけ',           prefecture: '神奈川県', distanceKm: 14.0, elevationGainM: 1200 },
+    '那須岳':             { elevation: 1915, reading: 'なすだけ',             prefecture: '栃木県',   distanceKm: 8.0,  elevationGainM: 700  },
+    '男体山':             { elevation: 2486, reading: 'なんたいさん',         prefecture: '栃木県',   distanceKm: 8.0,  elevationGainM: 1200 },
+    '日光白根山':         { elevation: 2578, reading: 'にっこうしらねさん',   prefecture: '群馬県',   distanceKm: 7.0,  elevationGainM: 600  },
+    '谷川岳':             { elevation: 1977, reading: 'たにがわだけ',         prefecture: '群馬県',   distanceKm: 8.5,  elevationGainM: 800  },
+    '赤城山':             { elevation: 1828, reading: 'あかぎさん',           prefecture: '群馬県',   distanceKm: 7.0,  elevationGainM: 500  },
+    '武尊山':             { elevation: 2158, reading: 'ほたかさん',           prefecture: '群馬県',   distanceKm: 10.0, elevationGainM: 900  },
+    '至仏山':             { elevation: 2228, reading: 'しぶつさん',           prefecture: '群馬県',   distanceKm: 10.0, elevationGainM: 900  },
+    '燧ヶ岳':             { elevation: 2356, reading: 'ひうちがたけ',         prefecture: '福島県',   distanceKm: 13.0, elevationGainM: 1100 },
+    '皇海山':             { elevation: 2144, reading: 'すかいさん',           prefecture: '栃木県',   distanceKm: 10.0, elevationGainM: 1000 },
+    '丹沢山':             { elevation: 1567, reading: 'たんざわさん',         prefecture: '神奈川県', distanceKm: 16.0, elevationGainM: 1400 },
+    '大菩薩嶺':           { elevation: 2057, reading: 'だいぼさつれい',       prefecture: '山梨県',   distanceKm: 7.0,  elevationGainM: 400  },
+    '両神山':             { elevation: 1723, reading: 'りょうかみさん',       prefecture: '埼玉県',   distanceKm: 8.0,  elevationGainM: 1100 },
+    '甲武信ヶ岳':         { elevation: 2475, reading: 'こぶしがたけ',         prefecture: '山梨県',   distanceKm: 14.0, elevationGainM: 1400 },
+    '金峰山':             { elevation: 2599, reading: 'きんぷさん',           prefecture: '山梨県',   distanceKm: 8.0,  elevationGainM: 600  },
+    '瑞牆山':             { elevation: 2230, reading: 'みずがきやま',         prefecture: '山梨県',   distanceKm: 7.0,  elevationGainM: 900  },
+    '入笠山':             { elevation: 1955, reading: 'にゅうかさやま',       prefecture: '長野県',   distanceKm: 5.0,  elevationGainM: 300  },
+    '木曽駒ヶ岳':         { elevation: 2956, reading: 'きそこまがたけ',       prefecture: '長野県',   distanceKm: 4.5,  elevationGainM: 400  },
+    '乗鞍岳':             { elevation: 3026, reading: 'のりくらだけ',         prefecture: '長野県',   distanceKm: 7.0,  elevationGainM: 600  },
+    '北岳':               { elevation: 3193, reading: 'きただけ',             prefecture: '山梨県',   distanceKm: 14.0, elevationGainM: 2200 },
+    '御嶽山（木曽）':     { elevation: 3067, reading: 'おんたけさん',         prefecture: '長野県',   distanceKm: 12.0, elevationGainM: 1400 },
+    '六甲山':             { elevation: 931,  reading: 'ろっこうさん',         prefecture: '兵庫県',   distanceKm: 9.0,  elevationGainM: 600  },
+    '大台ヶ原':           { elevation: 1695, reading: 'おおだいがはら',       prefecture: '奈良県',   distanceKm: 7.0,  elevationGainM: 400  },
+    '伊吹山':             { elevation: 1377, reading: 'いぶきさん',           prefecture: '滋賀県',   distanceKm: 8.0,  elevationGainM: 1200 },
+    '金剛山':             { elevation: 1125, reading: 'こんごうさん',         prefecture: '大阪府',   distanceKm: 6.5,  elevationGainM: 600  },
+    '武奈ヶ岳':           { elevation: 1214, reading: 'ぶながたけ',           prefecture: '滋賀県',   distanceKm: 8.0,  elevationGainM: 700  },
+};
+
+// ===== 山詳細ページ =====
+
+let dtlCurrentIndex = null;
+
+function showMountainDetail(index) {
+    dtlCurrentIndex = index;
+    const m   = mountainSuggestions[index];
+    const raw = m._raw || MOUNTAINS_DB.find(d => d.name === m.name) || {};
+    const ex  = MOUNTAIN_EXTRAS[m.name] || {};
+
+    const targetDate = getNextSaturday();
+    const WD = ['日','月','火','水','木','金','土'];
+    const mo  = targetDate.getMonth() + 1;
+    const da  = targetDate.getDate();
+    const wd  = WD[targetDate.getDay()];
+
+    const elevation     = ex.elevation     || '—';
+    const reading       = ex.reading       || '';
+    const prefecture    = ex.prefecture    || '';
+    const distanceKm    = ex.distanceKm    || Math.round((raw.walkTimeMin || 3) * 2.5 * 10) / 10;
+    const elevationGain = ex.elevationGainM|| (raw.difficultyLevel || 1) * 350;
+
+    const wMin = raw.walkTimeMin || 3;
+    const wH   = Math.floor(wMin);
+    const wM   = Math.round((wMin - wH) * 60);
+    const courseTime = `${wH}h${String(wM).padStart(2,'0')}`;
+
+    const level    = raw.difficultyLevel || 1;
+    const filled   = Math.round(level * 1.5);
+    const diffDots = [1,2,3,4,5].map(i =>
+        `<span class="dtl-dot ${i <= filled ? 'dtl-dot--on' : 'dtl-dot--off'}"></span>`
+    ).join('');
+    const bodyFit  = (level * 1.5).toFixed(1);
+
+    const travelKey = (userInputs.transport === '電車・公共交通機関') ? 'train' : 'car';
+    const transIcon = (travelKey === 'train') ? '🚃' : '🚗';
+    const travelTime = TRAVEL_TIMES[m.name]?.[userInputs.departure]?.[travelKey] || '';
+    const departure  = userInputs.departure || '出発地';
+    const trailhead  = getDtlTrailhead(m.name);
+    const routeMain  = `${departure} → ${trailhead}`;
+    const routeSub   = travelTime ? `${travelKey === 'train' ? '電車' : '車'}・${travelTime}` : '';
+
+    const cond = estimateDtlConditions(raw, ex, mo, targetDate);
+
+    const firstTrain = dtlFirstTrain(mo);
+    const lastTrain  = dtlLastTrain(mo);
+
+    const timeline = buildDtlTimeline(m.name, raw, departure, travelKey, travelTime);
+    const equip    = getMockEquipmentList(m, { ...userInputs, season: getCurrentSeason() });
+    const heroSvg  = generateDtlHeroSvg(raw);
+
+    const overlay = document.getElementById('mountainDetail');
+    overlay.innerHTML = `
+    <div class="dtl-page">
+
+      <div class="dtl-hero">
+        <div class="dtl-hero-bg">${heroSvg}</div>
+        <div class="dtl-topnav">
+          <button class="dtl-back" onclick="closeMountainDetail()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            戻る
+          </button>
+          <div class="dtl-topnav-actions">
+            <button class="dtl-action" onclick="showToast('保存機能は近日公開予定です')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+              保存
+            </button>
+            <button class="dtl-action" onclick="shareResults()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              共有
+            </button>
+          </div>
+        </div>
+        <div class="dtl-hero-title">
+          <p class="dtl-prefecture">${escapeHtml(prefecture)}${prefecture && raw.area ? '・' : ''}${escapeHtml(raw.area || '')}</p>
+          <h1 class="dtl-mtn-name">${escapeHtml(m.name)}</h1>
+          <p class="dtl-mtn-sub">${reading ? escapeHtml(reading) + '・' : ''}標高 ${elevation}m</p>
+        </div>
+      </div>
+
+      <div class="dtl-stats">
+        <div class="dtl-stat">
+          <span class="dtl-stat-label">難易度</span>
+          <div class="dtl-dots">${diffDots}</div>
+          <span class="dtl-stat-main dtl-stat-main--sm">${escapeHtml(m.difficulty)}</span>
+          <span class="dtl-stat-caption">体力${bodyFit}／技術${level}</span>
+        </div>
+        <div class="dtl-stat dtl-stat--sep">
+          <span class="dtl-stat-label">コースタイム</span>
+          <span class="dtl-stat-main">${courseTime}</span>
+          <span class="dtl-stat-caption">休憩込み</span>
+        </div>
+        <div class="dtl-stat dtl-stat--sep">
+          <span class="dtl-stat-label">距離</span>
+          <span class="dtl-stat-main">${distanceKm}km</span>
+          <span class="dtl-stat-caption">周回コース</span>
+        </div>
+        <div class="dtl-stat dtl-stat--sep">
+          <span class="dtl-stat-label">累積標高</span>
+          <span class="dtl-stat-main">+${elevationGain}m</span>
+          <span class="dtl-stat-caption">下り ${elevationGain}m</span>
+        </div>
+      </div>
+
+      <div class="dtl-content">
+
+        <div class="dtl-section">
+          <h2 class="dtl-section-h">${mo}月${da}日(${wd})、登れる？</h2>
+          <div class="dtl-cond-card">
+            <div class="dtl-cond-header dtl-cond-header--${cond.status}">
+              <div class="dtl-cond-icon dtl-cond-icon--${cond.status}">${cond.status === 'good' ? '✓' : '!'}</div>
+              <div>
+                <div class="dtl-cond-status">${escapeHtml(cond.statusText)}</div>
+                <div class="dtl-cond-sub">${escapeHtml(cond.statusSub)}</div>
+              </div>
+            </div>
+            <div class="dtl-cond-grid">
+              <div class="dtl-ci">
+                <span class="dtl-ci-label">天気</span>
+                <div class="dtl-ci-val"><span class="dtl-weather-dot dtl-weather-dot--${cond.weatherCls}"></span>${escapeHtml(cond.weather)}</div>
+                <div class="dtl-ci-sub">${cond.tempHi}°/${cond.tempLo}°</div>
+              </div>
+              <div class="dtl-ci">
+                <span class="dtl-ci-label">風</span>
+                <div class="dtl-ci-val">${escapeHtml(cond.windLevel)}</div>
+                <div class="dtl-ci-sub">${escapeHtml(cond.windSpeed)}</div>
+              </div>
+              <div class="dtl-ci">
+                <span class="dtl-ci-label">日の出</span>
+                <div class="dtl-ci-val">${cond.sunrise}</div>
+                <div class="dtl-ci-sub">日没 ${cond.sunset}</div>
+              </div>
+              <div class="dtl-ci">
+                <span class="dtl-ci-label">混雑</span>
+                <div class="dtl-ci-val">${escapeHtml(cond.crowdLevel)}</div>
+                <div class="dtl-ci-sub">${escapeHtml(cond.crowdNote)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dtl-section">
+          <h2 class="dtl-section-h">アクセス</h2>
+          <div class="dtl-access-card">
+            <div class="dtl-access-route">
+              <span class="dtl-access-icon">${transIcon}</span>
+              <div>
+                <div class="dtl-access-main">${escapeHtml(routeMain)}</div>
+                ${routeSub ? `<div class="dtl-access-sub">${escapeHtml(routeSub)}</div>` : ''}
+              </div>
+            </div>
+            <div class="dtl-access-times">
+              <div class="dtl-time-row">
+                <span class="dtl-time-label">始発</span>
+                <span class="dtl-time-val">${firstTrain}</span>
+              </div>
+              <div class="dtl-time-row">
+                <span class="dtl-time-label">終電（山頂発で帰宅）</span>
+                <span class="dtl-time-val">${lastTrain}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dtl-section">
+          <h2 class="dtl-section-h">持ち物リスト</h2>
+          <div class="dtl-equip-wrap" id="dtlEquip"></div>
+        </div>
+
+        <div class="dtl-section">
+          <h2 class="dtl-section-h">当日のタイムライン</h2>
+          <div class="dtl-timeline">
+            ${timeline.map((it, i) => `
+              <div class="dtl-tl-item">
+                <div class="dtl-tl-left">
+                  <span class="dtl-tl-time">${it.time}</span>
+                  <div class="dtl-tl-dot${it.summit ? ' dtl-tl-dot--summit' : ''}"></div>
+                  ${i < timeline.length - 1 ? '<div class="dtl-tl-line"></div>' : ''}
+                </div>
+                <div class="dtl-tl-right">
+                  <div class="dtl-tl-event">${escapeHtml(it.event)}</div>
+                  ${it.detail ? `<div class="dtl-tl-detail">${escapeHtml(it.detail)}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="dtl-disclaimer">
+          ⚠️ 天気・コンディション・時刻は参考推定値です。実際の登山計画はYAMAP等と組み合わせ、
+          <strong>必ず現地情報を確認してください。</strong>
+        </div>
+
+      </div>
+    </div>`;
+
+    renderDtlEquip(document.getElementById('dtlEquip'), equip);
+    overlay.classList.add('dtl-overlay--open');
+    overlay.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMountainDetail() {
+    const overlay = document.getElementById('mountainDetail');
+    overlay.classList.remove('dtl-overlay--open');
+    document.body.style.overflow = '';
+}
+
+// ===== 装備リスト（詳細ページ用） =====
+
+function renderDtlEquip(container, categories) {
+    if (!container) return;
+    const topItems = categories[0]?.items?.slice(0, 5) || [];
+    topItems.forEach((item, ii) => {
+        const id  = `de-${ii}`;
+        const row = document.createElement('div');
+        row.className = 'dtl-equip-item';
+        row.id = `de-row-${ii}`;
+        row.innerHTML = `
+            <input type="checkbox" id="${id}" onchange="toggleDtlEquip(${ii})">
+            <label for="${id}">${escapeHtml(item)}</label>`;
+        container.appendChild(row);
+    });
+    const total = categories.reduce((s, c) => s + c.items.length, 0);
+    if (total > 5) {
+        const btn = document.createElement('button');
+        btn.className = 'dtl-equip-more';
+        btn.textContent = `＋ すべて見る（全${total}品目）`;
+        btn.onclick = () => {
+            container.innerHTML = '';
+            let gi = 0;
+            categories.forEach(cat => {
+                const h = document.createElement('div');
+                h.className = 'dtl-equip-cat';
+                h.textContent = cat.category;
+                container.appendChild(h);
+                cat.items.forEach(item => {
+                    const id  = `de-full-${gi}`;
+                    const row = document.createElement('div');
+                    row.className = 'dtl-equip-item';
+                    row.id = `de-row-full-${gi}`;
+                    row.innerHTML = `
+                        <input type="checkbox" id="${id}" onchange="toggleDtlEquipFull(${gi})">
+                        <label for="${id}">${escapeHtml(item)}</label>`;
+                    container.appendChild(row);
+                    gi++;
+                });
+            });
+        };
+        container.appendChild(btn);
+    }
+}
+
+function toggleDtlEquip(ii) {
+    const row = document.getElementById(`de-row-${ii}`);
+    const cb  = document.getElementById(`de-${ii}`);
+    if (row && cb) row.classList.toggle('dtl-equip-item--checked', cb.checked);
+}
+
+function toggleDtlEquipFull(gi) {
+    const row = document.getElementById(`de-row-full-${gi}`);
+    const cb  = document.getElementById(`de-full-${gi}`);
+    if (row && cb) row.classList.toggle('dtl-equip-item--checked', cb.checked);
+}
+
+// ===== 日付・時刻ヘルパー =====
+
+function getNextSaturday() {
+    const d    = new Date();
+    const diff = (6 - d.getDay() + 7) % 7 || 7;
+    d.setDate(d.getDate() + diff);
+    return d;
+}
+
+function dtlAddMin(h, m, add) {
+    const t = h * 60 + m + add;
+    return { h: Math.floor(t / 60) % 24, m: t % 60 };
+}
+
+function dtlFmt(h, m) {
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function parseTravelMin(str) {
+    if (!str) return 60;
+    let mins = 0;
+    const hm = str.match(/(\d+)時間/);
+    const mm = str.match(/(\d+)分/);
+    if (hm) mins += parseInt(hm[1]) * 60;
+    if (mm) mins += parseInt(mm[1]);
+    return mins || 60;
+}
+
+// ===== コンディション推定 =====
+
+function estimateDtlConditions(raw, ex, month, date) {
+    const baseT = [null,
+        {hi:10,lo:2},{hi:12,lo:3},{hi:15,lo:7},{hi:21,lo:12},
+        {hi:25,lo:15},{hi:28,lo:20},{hi:31,lo:23},{hi:32,lo:24},
+        {hi:28,lo:20},{hi:22,lo:14},{hi:17,lo:9},{hi:12,lo:4}
+    ];
+    const elevAdj = Math.round((ex.elevation || 800) / 100 * 0.6);
+    const b       = baseT[month];
+    const tempHi  = b.hi - elevAdj;
+    const tempLo  = b.lo - elevAdj;
+
+    const weatherMap = {
+        1:{w:'晴れ',cls:'sunny'},        2:{w:'晴れ一時雪',cls:'snow'},
+        3:{w:'晴れ',cls:'sunny'},        4:{w:'晴れ時々曇り',cls:'sunny'},
+        5:{w:'晴れ',cls:'sunny'},        6:{w:'曇り一時雨',cls:'rain'},
+        7:{w:'晴れ',cls:'sunny'},        8:{w:'晴れ',cls:'sunny'},
+        9:{w:'晴れ時々曇り',cls:'sunny'},10:{w:'晴れ',cls:'sunny'},
+        11:{w:'晴れ',cls:'sunny'},       12:{w:'晴れ',cls:'sunny'}
+    };
+    const sunTimes = {
+        1:{rise:'06:51',set:'16:47'}, 2:{rise:'06:31',set:'17:16'},
+        3:{rise:'06:00',set:'17:44'}, 4:{rise:'05:22',set:'18:12'},
+        5:{rise:'04:49',set:'18:38'}, 6:{rise:'04:26',set:'19:01'},
+        7:{rise:'04:33',set:'19:02'}, 8:{rise:'04:58',set:'18:36'},
+        9:{rise:'05:27',set:'17:54'}, 10:{rise:'05:54',set:'17:11'},
+        11:{rise:'06:21',set:'16:37'},12:{rise:'06:47',set:'16:31'}
+    };
+
+    const season     = getCurrentSeason();
+    const seasonNote = raw.seasonNotes?.[season] || '';
+    const isBad      = seasonNote.includes('閉山') || (month <= 2 && (raw.difficultyLevel || 1) >= 3);
+    const isCaution  = seasonNote.includes('注意') || month === 6;
+
+    const popular    = ['高尾山','大山（丹沢）','御岳山（奥多摩）','入笠山','木曽駒ヶ岳','筑波山'];
+    const isWeekend  = date.getDay() === 0 || date.getDay() === 6;
+    const crowdHigh  = (isWeekend && popular.includes(raw.name)) ||
+                       (isWeekend && (month === 5 || month === 10 || month === 11));
+
+    const seasonDescMap = {
+        1:'冬装備が必要・積雪に注意',     2:'残雪・凍結の可能性あり',
+        3:'春の兆し・朝晩は冷え込む',     4:'春の花が見頃・快適なシーズン',
+        5:'新緑のピーク・好天が続く',     6:'梅雨入り・雨具必携',
+        7:'夏山シーズン・早朝出発推奨',   8:'暑さ注意・水分を多めに',
+        9:'秋晴れ多め・台風に注意',       10:'紅葉シーズン・最高の登山日和',
+        11:'晩秋・朝の冷え込みに注意',    12:'冬本番・防寒装備を万全に'
+    };
+
+    const lv = raw.difficultyLevel || 1;
+    return {
+        status:     isBad ? 'caution' : 'good',
+        statusText: isBad     ? '入山注意。最新情報を確認してください' :
+                    isCaution ? '注意事項あり。準備をしっかりと'       : '登山適期。コンディション良好',
+        statusSub:  seasonDescMap[month] || '',
+        weather:    weatherMap[month].w,
+        weatherCls: weatherMap[month].cls,
+        tempHi, tempLo,
+        windLevel:  lv >= 3 ? '中程度' : lv === 2 ? '弱〜中' : '弱',
+        windSpeed:  lv >= 3 ? '5-8 m/s' : lv === 2 ? '3-5 m/s' : '2-3 m/s',
+        sunrise:    sunTimes[month].rise,
+        sunset:     sunTimes[month].set,
+        crowdLevel: crowdHigh ? '混雑' : '比較的空いている',
+        crowdNote:  popular.includes(raw.name) && isWeekend ? '人気エリア＋週末' :
+                    (month === 10 || month === 11) ? '紅葉シーズンは混雑' : ''
+    };
+}
+
+// ===== 始発・終電（月別概算） =====
+
+function dtlFirstTrain(month) {
+    return ['','05:10','05:05','04:55','04:48','04:45','04:43',
+             '04:45','04:47','04:53','04:58','05:05','05:10'][month] || '05:00';
+}
+function dtlLastTrain(month) {
+    return ['','21:15','21:20','21:30','21:38','21:48','21:55',
+             '21:55','21:50','21:40','21:25','21:15','21:10'][month] || '21:30';
+}
+
+// ===== タイムライン生成 =====
+
+const DTL_TRAILHEADS = {
+    '高尾山':'高尾山口駅',       '筑波山':'つくば駅BS',      '大山（丹沢）':'伊勢原駅',
+    '御岳山（奥多摩）':'御嶽駅', '陣馬山〜高尾山縦走':'藤野駅','雲取山':'鴨沢BS',
+    '塔ノ岳（丹沢）':'大倉BS',   '那須岳':'那須ロープウェイ', '男体山':'二荒山神社',
+    '日光白根山':'丸沼高原',     '谷川岳':'土合駅',           '赤城山':'赤城山VC',
+    '至仏山':'鳩待峠',           '燧ヶ岳':'沼山峠',           '入笠山':'富士見駅',
+    '木曽駒ヶ岳':'菅の台BC',     '乗鞍岳':'乗鞍高原',         '北岳':'広河原',
+    '六甲山':'六甲登山口',       '伊吹山':'伊吹山登山口',      '金剛山':'金剛山口',
+    '大台ヶ原':'大台ヶ原P',
+};
+
+function getDtlTrailhead(name) {
+    return DTL_TRAILHEADS[name] || '登山口';
+}
+
+function buildDtlTimeline(name, raw, departure, travelKey, travelTimeStr) {
+    const tMin   = parseTravelMin(travelTimeStr) || 60;
+    const walkH  = (raw.walkTimeMin || 3) * 60;
+    const walkMx = (raw.walkTimeMax || (raw.walkTimeMin || 3) + 1) * 60;
+    const oneWay = Math.round((walkH + walkMx) / 4);
+
+    const items = [];
+    let c = { h: 8, m: 0 };
+    const th    = getDtlTrailhead(name);
+    const trans = travelKey === 'train' ? '電車' : '車';
+
+    items.push({ time: dtlFmt(c.h, c.m), event: `${departure}発`, detail: `${trans}で${th}へ` });
+    c = dtlAddMin(c.h, c.m, tMin);
+    items.push({ time: dtlFmt(c.h, c.m), event: `${th}着`, detail: '準備・ストレッチ' });
+    c = dtlAddMin(c.h, c.m, 15);
+    items.push({ time: dtlFmt(c.h, c.m), event: '登山開始', detail: '' });
+    c = dtlAddMin(c.h, c.m, oneWay);
+    items.push({ time: dtlFmt(c.h, c.m), event: `${name} 山頂到着`, detail: '昼食・眺望を楽しむ', summit: true });
+    c = dtlAddMin(c.h, c.m, oneWay > 120 ? 60 : 40);
+    items.push({ time: dtlFmt(c.h, c.m), event: '下山開始', detail: '' });
+    c = dtlAddMin(c.h, c.m, oneWay);
+    items.push({ time: dtlFmt(c.h, c.m), event: '下山完了', detail: '' });
+    c = dtlAddMin(c.h, c.m, tMin + 15);
+    items.push({ time: dtlFmt(c.h, c.m), event: `${departure}着`, detail: 'お疲れ様でした！' });
+
+    return items;
+}
+
+// ===== 詳細ページ用ヒーローSVG（暖かい山岳パノラマ） =====
+
+function generateDtlHeroSvg(mountain) {
+    const W = 800, H = 320;
+    const seed = mountain.name.split('').reduce((a, c, i) => a + c.charCodeAt(0) * (i + 1), 0);
+    const rng  = n => ((seed * 1664525 + n * 1013904223) >>> 0) / 0xFFFFFFFF;
+    const gradId = `dh-${seed}`;
+
+    const sx = W * 0.78 + (rng(1) - 0.5) * 40;
+    const sy = H * 0.20 + (rng(2) - 0.5) * 20;
+    const sr = 52 + rng(3) * 16;
+
+    const farPath = `M0,${H} L0,${H*0.55}
+      Q${W*.12},${H*.40} ${W*.22},${H*.43}
+      Q${W*.35},${H*.33} ${W*.44},${H*.36}
+      Q${W*.55},${H*.28} ${W*.62},${H*.32}
+      Q${W*.74},${H*.38} ${W*.88},${H*.42}
+      L${W},${H*.43} L${W},${H} Z`;
+
+    const midPath = `M0,${H} L0,${H*.68}
+      Q${W*.07},${H*.55} ${W*.14},${H*.50}
+      Q${W*.22},${H*.42} ${W*.30},${H*.35}
+      Q${W*.38},${H*.26} ${W*.44},${H*.32}
+      Q${W*.52},${H*.42} ${W*.60},${H*.50}
+      Q${W*.72},${H*.58} ${W*.88},${H*.56}
+      L${W},${H*.56} L${W},${H} Z`;
+
+    const nearPath = `M0,${H} L0,${H*.80}
+      Q${W*.06},${H*.68} ${W*.14},${H*.60}
+      Q${W*.22},${H*.54} ${W*.30},${H*.62}
+      Q${W*.42},${H*.70} ${W*.55},${H*.74}
+      L${W},${H*.73} L${W},${H} Z`;
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"
+        preserveAspectRatio="xMidYMid slice" aria-hidden="true"
+        style="display:block;width:100%;height:100%">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c4b298"/>
+          <stop offset="100%" stop-color="#dfd0b8"/>
+        </linearGradient>
+      </defs>
+      <rect width="${W}" height="${H}" fill="url(#${gradId})"/>
+      <circle cx="${sx}" cy="${sy}" r="${sr+18}" fill="#e07838" opacity="0.12"/>
+      <circle cx="${sx}" cy="${sy}" r="${sr}"    fill="#e07838" opacity="0.82"/>
+      <path d="${farPath}"  fill="#a8bba8"/>
+      <path d="${midPath}"  fill="#4e7255"/>
+      <path d="${nearPath}" fill="#253c28"/>
+    </svg>`;
 }

@@ -1200,6 +1200,369 @@ main {
     border-left: 3px solid #f59e0b;
 }
 
+/* ===== プランを作るボタン（山カード内） ===== */
+.card-plan-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px 14px;
+    background: transparent;
+    color: var(--ac-500);
+    border: 1.5px solid var(--ac-500);
+    border-radius: var(--r-md);
+    font-size: 0.85rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+.card-plan-btn:hover {
+    background: var(--ac-500);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(224,98,54,.28);
+    transform: translateY(-1px);
+}
+
+.card-plan-btn:active { transform: scale(0.97); }
+
+/* ===== プラン作成モーダル ===== */
+.plan-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,45,28,.45);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.plan-modal {
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    box-shadow: var(--sh-lg);
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+    animation: modalIn 0.24s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.plan-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border-2);
+}
+
+.plan-modal-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.plan-modal-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.plan-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.plan-modal-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
+.plan-modal-optional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.plan-modal-field input {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    outline: none;
+}
+
+.plan-modal-field input:focus {
+    border-color: var(--c-400);
+    box-shadow: 0 0 0 3px rgba(82,160,115,.15);
+}
+
+.plan-modal-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border-2);
+}
+
+.plan-modal-footer .btn { flex: 1; }
+
+/* ===== プラン作成完了ページ ===== */
+.plan-complete-header { margin-bottom: 24px; }
+
+.plan-complete-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ac-500);
+    margin-bottom: 8px;
+}
+
+.plan-complete-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 0;
+}
+
+.plan-invite-card {
+    position: relative;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    background: #f3ede3;
+    height: 220px;
+    margin-bottom: 12px;
+    box-shadow: var(--sh-md);
+}
+
+.plan-invite-sun {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: #e8a87c;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.plan-invite-illustration {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.plan-invite-illustration svg {
+    width: 100%;
+    height: 100%;
+}
+
+.plan-invite-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: linear-gradient(to bottom, transparent 30%, rgba(20,38,28,.58) 100%);
+}
+
+.plan-invite-meta {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.88);
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+.plan-invite-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    text-shadow: 0 2px 8px rgba(0,0,0,.35);
+    margin: 0;
+}
+
+.plan-summary-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    padding: 16px 20px 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--sh-sm);
+}
+
+.plan-summary-cols {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.plan-summary-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.plan-summary-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+.plan-summary-value {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.plan-summary-link {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-2);
+    padding-top: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.plan-summary-link::before {
+    content: '🔗';
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.plan-share-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.btn-plan-copy {
+    flex: 1;
+    padding: 14px;
+    background: var(--ac-500);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-lg);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+    box-shadow: 0 2px 10px rgba(224,98,54,.3);
+    letter-spacing: 0.01em;
+}
+
+.btn-plan-copy:hover {
+    background: var(--ac-600);
+    box-shadow: 0 4px 16px rgba(224,98,54,.4);
+    transform: translateY(-1px);
+}
+
+.btn-plan-line {
+    padding: 14px 20px;
+    background: #06c755;
+    color: #fff;
+    border: none;
+    border-radius: var(--r-lg);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t-fast), transform var(--t-fast);
+    white-space: nowrap;
+}
+
+.btn-plan-line:hover { background: #05b34c; transform: translateY(-1px); }
+
+.btn-plan-native {
+    padding: 14px 16px;
+    background: var(--surface);
+    color: var(--text-sub);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-lg);
+    font-size: 1rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+
+.btn-plan-native:hover {
+    background: var(--n-100);
+    border-color: var(--n-300);
+    transform: translateY(-1px);
+}
+
+.plan-details-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    padding: 20px 24px;
+    box-shadow: var(--sh-sm);
+    margin-bottom: 24px;
+}
+
+.plan-details-card h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+}
+
+.plan-detail-row {
+    display: grid;
+    grid-template-columns: 5em 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-2);
+    align-items: baseline;
+}
+
+.plan-detail-row.last { border-bottom: none; }
+
+.plan-detail-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.plan-detail-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.6;
+}
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 600px) {
     #mountainCards {
@@ -1229,4 +1592,835 @@ main {
     .mountain-card-image { margin: -20px -18px 0; }
     .compare-bar-label { display: none; }
     .compare-bar-inner { gap: 8px; }
+}
+
+/* ===== Step 0: 日付選択カレンダー ===== */
+
+.date-step-header {
+    margin-bottom: 1.5rem;
+}
+
+.step-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--ac-500);
+    margin-bottom: 0.25rem;
+}
+
+.date-step-title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+}
+
+.date-step-sub {
+    font-size: 0.875rem;
+    color: var(--text-sub);
+}
+
+/* カレンダーコンテナ */
+.cal-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.25rem 1.25rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--sh-sm);
+}
+
+.cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.875rem;
+}
+
+.cal-month {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.cal-legend {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.cal-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.cal-dot--ok  { background: var(--c-500); }
+.cal-dot--bad { background: var(--ac-500); }
+
+.cal-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.cal-scroll::-webkit-scrollbar { display: none; }
+
+.cal-track {
+    display: flex;
+    gap: 0.375rem;
+    padding-bottom: 0.125rem;
+}
+
+.cal-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 52px;
+    padding: 0.45rem 0.25rem 0.6rem;
+    border-radius: var(--r-md);
+    border: 1.5px solid transparent;
+    background: var(--n-50);
+    cursor: pointer;
+    transition: background var(--t-base), border-color var(--t-base);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.cal-cell:hover:not(.cal-cell--selected) {
+    border-color: var(--c-300);
+    background: var(--c-50);
+}
+
+.cal-cell--today {
+    border-color: var(--c-200);
+}
+
+.cal-cell--selected {
+    background: var(--c-800) !important;
+    border-color: var(--c-800) !important;
+}
+
+.cal-cell--selected .cal-day,
+.cal-cell--selected .cal-date {
+    color: #fff !important;
+}
+
+.cal-cell--selected .cal-dot--ok  { background: var(--c-300); }
+.cal-cell--selected .cal-dot--bad { background: var(--ac-400); }
+
+.cal-day {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.cal-date {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+}
+
+/* 日付選択済みカード */
+.date-selected-card {
+    background: var(--c-800);
+    border-radius: var(--r-xl);
+    padding: 1.375rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sh-md);
+}
+
+.date-selected-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.date-selected-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--c-300);
+    margin-bottom: 0.2rem;
+}
+
+.date-selected-main {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.2rem;
+    line-height: 1.25;
+}
+
+.date-selected-sub {
+    font-size: 0.875rem;
+    color: var(--c-200);
+    line-height: 1.5;
+}
+
+.date-selected-sub strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+.btn-date-go {
+    background: var(--ac-500);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-full);
+    padding: 0.75rem 1.625rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--t-fast);
+    flex-shrink: 0;
+}
+
+.btn-date-go:hover { background: var(--ac-600); }
+
+/* 最近の検索 */
+.recent-searches {
+    margin-top: 0.25rem;
+}
+
+.recent-searches-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 0.625rem;
+}
+
+.recent-searches-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.recent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.875rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-full);
+    background: var(--surface);
+    font-size: 0.8125rem;
+    font-family: var(--font);
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: border-color var(--t-fast), color var(--t-fast);
+}
+
+.recent-chip::before {
+    content: '↺';
+    font-size: 0.875rem;
+    opacity: 0.6;
+}
+
+.recent-chip:hover {
+    border-color: var(--c-300);
+    color: var(--c-600);
+}
+
+@media (max-width: 480px) {
+    .date-step-title { font-size: 1.6rem; }
+    .date-selected-main { font-size: 1.25rem; }
+    .btn-date-go { padding: 0.6rem 1.125rem; font-size: 0.875rem; }
+    .cal-cell { min-width: 46px; }
+}
+
+/* ===== 山詳細ページ（SPビュー） ===== */
+
+.dtl-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: var(--bg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dtl-overlay--open {
+    transform: translateX(0);
+}
+
+/* ヒーロー */
+.dtl-page { min-height: 100vh; }
+
+.dtl-hero {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+    background: #c4b298;
+}
+
+.dtl-hero-bg {
+    position: absolute;
+    inset: 0;
+}
+
+/* トップナビ */
+.dtl-topnav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.dtl-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px 8px 10px;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.30);
+    border-radius: var(--r-full);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast);
+}
+.dtl-back:hover { background: rgba(255,255,255,0.32); }
+
+.dtl-topnav-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.dtl-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.30);
+    border-radius: var(--r-full);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t-fast);
+}
+.dtl-action:hover { background: rgba(255,255,255,0.32); }
+
+/* ヒーロー内タイトル */
+.dtl-hero-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 48px 20px 20px;
+    background: linear-gradient(to top, rgba(18,32,20,0.72) 0%, transparent 100%);
+    color: #fff;
+}
+
+.dtl-prefecture {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.78);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.dtl-mtn-name {
+    font-family: var(--font-display);
+    font-size: 2.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.28);
+}
+
+.dtl-mtn-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.72);
+    margin-top: 5px;
+}
+
+/* スタッツ行 */
+.dtl-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--sh-sm);
+}
+
+.dtl-stat {
+    padding: 14px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.dtl-stat--sep { border-left: 1px solid var(--border-2); }
+
+.dtl-stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.dtl-stat-main {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.dtl-stat-main--sm { font-size: 0.875rem; }
+
+.dtl-stat-caption {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+
+/* 難易度ドット */
+.dtl-dots {
+    display: flex;
+    gap: 3px;
+    margin: 2px 0;
+}
+
+.dtl-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--r-full);
+    flex-shrink: 0;
+}
+
+.dtl-dot--on  { background: var(--c-500); }
+.dtl-dot--off { background: var(--border); }
+
+/* コンテンツ */
+.dtl-content { padding-bottom: 48px; }
+
+.dtl-section { padding: 22px 16px 0; }
+
+.dtl-section-h {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+/* コンディションカード */
+.dtl-cond-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-sm);
+    overflow: hidden;
+}
+
+.dtl-cond-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.dtl-cond-header--good    { background: #edf7f0; }
+.dtl-cond-header--caution { background: #fef9e7; }
+
+.dtl-cond-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+.dtl-cond-icon--good    { background: var(--c-500); }
+.dtl-cond-icon--caution { background: #e8a217; }
+
+.dtl-cond-status {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+.dtl-cond-sub {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-top: 2px;
+}
+
+.dtl-cond-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--border-2);
+}
+
+.dtl-ci {
+    padding: 13px 16px;
+    border-right: 1px solid var(--border-2);
+    border-bottom: 1px solid var(--border-2);
+}
+
+.dtl-ci:nth-child(2n)       { border-right: none; }
+.dtl-ci:nth-last-child(-n+2) { border-bottom: none; }
+
+.dtl-ci-label {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+
+.dtl-ci-val {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dtl-ci-sub {
+    font-size: 0.72rem;
+    color: var(--text-sub);
+    margin-top: 2px;
+}
+
+/* 天気ドット */
+.dtl-weather-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--r-full);
+    flex-shrink: 0;
+}
+
+.dtl-weather-dot--sunny { background: #f5a623; }
+.dtl-weather-dot--rain  { background: #5b8dd9; }
+.dtl-weather-dot--snow  { background: #a8c4e0; }
+
+/* アクセスカード */
+.dtl-access-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-sm);
+    overflow: hidden;
+}
+
+.dtl-access-route {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #faf5ee;
+    border-bottom: 1px solid var(--border-2);
+}
+
+.dtl-access-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.dtl-access-main {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.dtl-access-sub {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-top: 2px;
+}
+
+.dtl-access-times { padding: 0 16px; }
+
+.dtl-time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--border-2);
+}
+
+.dtl-time-row:last-child { border-bottom: none; }
+
+.dtl-time-label { color: var(--text-sub); }
+.dtl-time-val   { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* 装備リスト */
+.dtl-equip-wrap {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-sm);
+    overflow: hidden;
+}
+
+.dtl-equip-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border-2);
+    transition: background var(--t-fast);
+}
+
+.dtl-equip-item:last-of-type { border-bottom: none; }
+
+.dtl-equip-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--c-500);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.dtl-equip-item label {
+    font-size: 0.875rem;
+    color: var(--text);
+    cursor: pointer;
+    flex: 1;
+    transition: color var(--t-fast);
+}
+
+.dtl-equip-item--checked label {
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+.dtl-equip-item--checked { background: var(--n-50); }
+
+.dtl-equip-cat {
+    padding: 10px 16px 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    background: var(--c-50);
+    border-bottom: 1px solid var(--border-2);
+}
+
+.dtl-equip-more {
+    display: block;
+    width: 100%;
+    padding: 13px 16px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--c-600);
+    font-weight: 600;
+    background: var(--surface);
+    border: none;
+    cursor: pointer;
+    transition: background var(--t-fast);
+    border-top: 1px solid var(--border-2);
+}
+
+.dtl-equip-more:hover { background: var(--c-50); }
+
+/* タイムライン */
+.dtl-timeline { display: flex; flex-direction: column; }
+
+.dtl-tl-item {
+    display: flex;
+    gap: 14px;
+    padding-bottom: 0;
+}
+
+.dtl-tl-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+}
+
+.dtl-tl-time {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.dtl-tl-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--r-full);
+    background: var(--c-300);
+    margin: 5px 0;
+    flex-shrink: 0;
+}
+
+.dtl-tl-dot--summit {
+    background: var(--ac-500);
+    width: 12px;
+    height: 12px;
+}
+
+.dtl-tl-line {
+    flex: 1;
+    width: 2px;
+    background: var(--border);
+    margin: 0 auto;
+    min-height: 28px;
+}
+
+.dtl-tl-right {
+    flex: 1;
+    padding-bottom: 24px;
+}
+
+.dtl-tl-event {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    padding-top: 2px;
+}
+
+.dtl-tl-detail {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-top: 2px;
+}
+
+/* 免責 */
+.dtl-disclaimer {
+    margin: 22px 16px 0;
+    background: var(--ac-50);
+    border: 1px solid #fad7b8;
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    font-size: 0.75rem;
+    color: var(--ac-600);
+    line-height: 1.65;
+}
+
+/* ===== SP対応（480px以下） ===== */
+@media (max-width: 480px) {
+    .dtl-hero { height: 280px; }
+    .dtl-mtn-name { font-size: 2.25rem; }
+    .dtl-stat-main { font-size: 1.1rem; }
+    .dtl-stat-main--sm { font-size: 0.8125rem; }
+    .dtl-stat { padding: 12px 6px; }
+}
+
+/* ===== 結果レイアウト（リスト＋マップ） ===== */
+
+.results-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 40px;
+}
+
+/* デスクトップ: 2カラム */
+@media (min-width: 900px) {
+    .results-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .results-map-panel {
+        position: sticky;
+        top: 16px;
+    }
+
+    /* 2カラム時はカードを1列に */
+    .results-list #mountainCards {
+        grid-template-columns: 1fr;
+        margin-bottom: 0;
+    }
+}
+
+/* マップパネル */
+.results-map-panel {
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border-2);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(15,45,28,.08), 0 1px 4px rgba(15,45,28,.04);
+}
+
+.results-map-header {
+    padding: 9px 14px 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--c-50);
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.results-map-header::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-400);
+}
+
+#resultsMap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* マップマーカー：ホバー */
+.map-mtn-marker {
+    cursor: pointer;
+    transition: opacity 0.12s;
+}
+.map-mtn-marker:hover {
+    opacity: 0.78;
+}
+
+/* カードフラッシュ：マップクリック時のハイライト */
+@keyframes map-card-flash {
+    0%   { box-shadow: 0 2px 12px rgba(15,45,28,.08), 0 1px 3px rgba(15,45,28,.05);
+           border-color: var(--border-2); }
+    15%  { box-shadow: 0 0 0 3px rgba(54,133,88,0.35), 0 4px 20px rgba(54,133,88,0.2);
+           border-color: var(--c-400); }
+    75%  { box-shadow: 0 0 0 3px rgba(54,133,88,0.35), 0 4px 20px rgba(54,133,88,0.2);
+           border-color: var(--c-400); }
+    100% { box-shadow: 0 2px 12px rgba(15,45,28,.08), 0 1px 3px rgba(15,45,28,.05);
+           border-color: var(--border-2); }
+}
+.mountain-card.map-flash {
+    animation: map-card-flash 1.4s ease forwards;
 }
